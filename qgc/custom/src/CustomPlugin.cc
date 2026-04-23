@@ -5,9 +5,11 @@
 #include "AppSettings.h"
 #include "Vehicle.h"
 #include "RocketTelemetryFactGroup.h"
+#include "safety/SafetyKernel.h"
 
 #include <QtCore/QApplicationStatic>
 #include <QtQml/QQmlApplicationEngine>
+#include <QtQml/QQmlContext>
 
 QGC_LOGGING_CATEGORY(CustomLog, "Custom.M130Plugin")
 
@@ -41,11 +43,15 @@ CustomOptions::CustomOptions(CustomPlugin *plugin, QObject *parent)
 CustomPlugin::CustomPlugin(QObject *parent)
     : QGCCorePlugin(parent)
     , _options(new CustomOptions(this, this))
+    , _safetyKernel(new m130::gui::SafetyKernel(this))
 {
     qCDebug(CustomLog) << "M130 GCS Plugin initializing";
     _showAdvancedUI = false;
+    _safetyKernel->installDefaults();
     (void) connect(this, &QGCCorePlugin::showAdvancedUIChanged, this, &CustomPlugin::_advancedChanged);
 }
+
+CustomPlugin::~CustomPlugin() = default;
 
 QGCCorePlugin *CustomPlugin::instance()
 {
@@ -71,6 +77,14 @@ void CustomPlugin::_advancedChanged(bool changed)
 
 bool CustomPlugin::mavlinkMessage(Vehicle *vehicle, LinkInterface * /*link*/, const mavlink_message_t &message)
 {
+    // Feed the Safety Kernel watchdog on every heartbeat and on each valid
+    // RktGNC telemetry block so staleness alerts clear automatically.
+    if (_safetyKernel) {
+        if (message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
+            _safetyKernel->feed(QStringLiteral("heartbeat"));
+        }
+    }
+
     if (message.msgid == MAVLINK_MSG_ID_DEBUG_FLOAT_ARRAY) {
         mavlink_debug_float_array_t dbg;
         mavlink_msg_debug_float_array_decode(&message, &dbg);
@@ -79,6 +93,20 @@ bool CustomPlugin::mavlinkMessage(Vehicle *vehicle, LinkInterface * /*link*/, co
             FactGroup *fg = vehicle->getFactGroup(QStringLiteral("rocket"));
             if (fg) {
                 fg->handleMessage(vehicle, message);
+            }
+            if (_safetyKernel) {
+                _safetyKernel->feed(QStringLiteral("gnc_state"));
+                // Envelope checks on the safety-critical fields. Indices match
+                // RocketTelemetryFactGroup / DEBUG_FLOAT_ARRAY.hpp contract and
+                // docs/safety/SafetyEnvelope.md.
+                //   idx  4: rollRateCmd (unused for envelope today)
+                //   idx 15: altitude    (not yet in default envelope)
+                //   idx 18: phi (roll)
+                //   idx 21: alpha_est
+                //   idx 38: mpc_solve_us
+                _safetyKernel->evaluateSample(QStringLiteral("phi"),       dbg.data[18]);
+                _safetyKernel->evaluateSample(QStringLiteral("alpha_est"), dbg.data[21]);
+                _safetyKernel->evaluateSample(QStringLiteral("mpc_solve_us"), dbg.data[38]);
             }
             // لا نوقف المعالجة — اسمح لـ MAVLink Inspector بعرضها أيضاً
         }
@@ -222,6 +250,13 @@ QQmlApplicationEngine *CustomPlugin::createQmlApplicationEngine(QObject *parent)
 
     _selector = new CustomOverrideInterceptor();
     _qmlEngine->addUrlInterceptor(_selector);
+
+    // Publish the Safety Kernel to QML so MasterCautionLight, AlertBanner,
+    // and console views can bind to its properties (REQ-M130-GCS-UI-001/002).
+    if (_safetyKernel) {
+        _qmlEngine->rootContext()->setContextProperty(
+            QStringLiteral("m130SafetyKernel"), _safetyKernel);
+    }
 
     return _qmlEngine;
 }

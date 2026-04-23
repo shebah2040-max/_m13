@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Alert Banner — scrollable list of active alerts ordered by severity.
-// Bound to `m130AlertManager.activeAlerts` once the QObject wrapper is wired
-// in Pillar 3. Foundation shows an empty state.
+// Bound to `m130SafetyKernel.activeAlerts` (an AlertListModel registered as
+// a QML context property in CustomPlugin::createQmlApplicationEngine).
+// Each row is an Alert with roles: alertId, level, levelText, title,
+// detail, raisedMs, ackedMs, ackUser.
 
 import QtQuick          2.15
 import QtQuick.Controls 2.15
@@ -10,6 +12,7 @@ import QtQuick.Layouts  1.15
 
 import QGroundControl.ScreenTools   1.0
 import QGroundControl.Palette       1.0
+import QGroundControl.Controls      1.0
 
 Rectangle {
     id: root
@@ -19,8 +22,9 @@ Rectangle {
     radius: ScreenTools.defaultFontPixelHeight * 0.2
 
     readonly property QGCPalette qgcPal: QGCPalette { colorGroupEnabled: true }
-    property var alerts: (typeof m130AlertManager !== "undefined" && m130AlertManager !== null)
-                           ? m130AlertManager.activeAlerts : []
+    property var kernel: (typeof m130SafetyKernel !== "undefined") ? m130SafetyKernel : null
+    property var alerts: kernel ? kernel.activeAlerts : null
+    property string ackUser: "operator"
 
     implicitHeight: ScreenTools.defaultFontPixelHeight * 6
 
@@ -37,7 +41,7 @@ Rectangle {
             height: label.implicitHeight + ScreenTools.defaultFontPixelHeight * 0.4
             radius: 2
             color: {
-                switch (modelData.level) {
+                switch (level) {
                 case 1:  return "#404040"  // Advisory
                 case 2:  return "#ffb000"  // Caution
                 case 3:  return "#ff6000"  // Warning
@@ -52,14 +56,20 @@ Rectangle {
 
                 QGCLabel {
                     id: label
-                    text: modelData.title + " — " + modelData.detail
-                    color: modelData.level >= 3 ? "white" : qgcPal.text
+                    text: title + " — " + detail
+                    color: level >= 3 ? "white" : qgcPal.text
                     wrapMode: Text.WordWrap
                     Layout.fillWidth: true
                 }
+                QGCLabel {
+                    text: levelText
+                    color: level >= 3 ? "white" : qgcPal.text
+                    font.bold: true
+                }
                 QGCButton {
                     text: qsTr("Ack")
-                    onClicked: if (m130AlertManager) m130AlertManager.acknowledge(modelData.id)
+                    enabled: root.kernel !== null
+                    onClicked: if (root.kernel) root.kernel.acknowledge(alertId, root.ackUser)
                 }
             }
         }
@@ -67,7 +77,9 @@ Rectangle {
 
     QGCLabel {
         anchors.centerIn: parent
-        visible: root.alerts && root.alerts.length === 0
+        visible: (!root.alerts) || (root.alerts.rowCount !== undefined
+                                     ? root.alerts.rowCount() === 0
+                                     : root.alerts.length === 0)
         text: qsTr("No active alerts")
         opacity: 0.5
     }
