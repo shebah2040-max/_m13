@@ -50,8 +50,48 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/AlertListModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.h
-    # Access layer (used by CommandAuthorization)
+    # Access layer (Pillar 6: argon2id-ready hasher, TOTP, authenticator chain)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Role.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/AccessController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/AccessController.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Argon2.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Argon2.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Base32.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Base32.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Blake2b.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Blake2b.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/CertPolicy.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/CertPolicy.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapAuthenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapAuthenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapDn.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapDn.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapFilter.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapFilter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/MtlsAuthenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/MtlsAuthenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Ber.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Ber.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapMessage.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapMessage.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/GssAuthenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/GssAuthenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QtLdapTransport.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QtLdapTransport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QSslChannelAdapter.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QSslChannelAdapter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Pbkdf2.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Pbkdf2.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/SessionManager.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/SessionManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Totp.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Totp.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/UserManager.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/UserManager.h
     # Protocol layer (pure-C++) + generated dialect
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/ProtocolVersion.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/ProtocolVersion.h
@@ -84,6 +124,62 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/ReplayEngine.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/AuditLogger.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/AuditLogger.h
+    # View-models (pure C++ — also compiled into standalone m130_core)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ChecklistModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ChecklistModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/CountdownClock.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/CountdownClock.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/IipPredictor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/IipPredictor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.h
+    # Phase B — Qt-bound facades for Pillar 5
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/MissionController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/MissionController.h
+    # Analysis (pure C++ — FFT, window, spectrum, timeseries, MHE innovation)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/RingBuffer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Timeseries.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Timeseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Window.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Fft.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Fft.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Spectrum.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Spectrum.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/MheInnovationMonitor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/MheInnovationMonitor.h
+    # Phase B — Qt-bound facade for Pillar 7 analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/AnalysisController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/AnalysisController.h
+    # Tuning (pure C++ — bounded MPC weight model + snapshot/rollback)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningParameter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/MpcTuningModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/MpcTuningModel.h
+    # Phase B — Qt-bound facade for Pillar 7 tuning
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningController.h
+    # Pillar 8 — geodetic, trajectory, corridor, weather cores (pure C++)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Wgs84.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Wgs84.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Geodesic.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Geodesic.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapCorridor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapCorridor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/CorridorMonitor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/CorridorMonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherOverlay.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherOverlay.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/NotamModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/NotamModel.h
+    # Pillar 8 — Qt-bound controllers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryController.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapController.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherController.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -102,6 +198,13 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather
     CACHE INTERNAL "" FORCE
 )
 

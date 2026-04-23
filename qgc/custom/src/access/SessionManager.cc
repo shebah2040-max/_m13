@@ -40,7 +40,12 @@ SessionManager::SessionManager(Clock clock, IdGenerator id_gen)
 
 bool SessionManager::isExpiredLocked(const Session& s, uint64_t now) const
 {
-    return now >= s.expires_at_ms;
+    if (now >= s.expires_at_ms) return true;
+    if (_idle_ttl_ms != 0 && now > s.last_active_ms &&
+        (now - s.last_active_ms) >= _idle_ttl_ms) {
+        return true;
+    }
+    return false;
 }
 
 std::string SessionManager::create(std::string user_id, Role role, std::optional<uint64_t> ttl_ms)
@@ -78,7 +83,12 @@ SessionState SessionManager::state(const std::string& session_id) const
     if (_revoked.count(session_id)) return SessionState::Revoked;
     auto it = _sessions.find(session_id);
     if (it == _sessions.end()) return SessionState::NotFound;
-    if (isExpiredLocked(it->second, _clock())) return SessionState::Expired;
+    const uint64_t now = _clock();
+    if (now >= it->second.expires_at_ms) return SessionState::Expired;
+    if (_idle_ttl_ms != 0 && now > it->second.last_active_ms &&
+        (now - it->second.last_active_ms) >= _idle_ttl_ms) {
+        return SessionState::Idle;
+    }
     return SessionState::Valid;
 }
 
@@ -101,6 +111,37 @@ std::size_t SessionManager::evictExpired()
         }
     }
     return n;
+}
+
+StepUpResult SessionManager::stepUp(const std::string& session_id,
+                                    std::function<bool()> verify_fn,
+                                    std::string* out_new_id)
+{
+    if (_revoked.count(session_id)) return StepUpResult::SessionInvalid;
+    auto it = _sessions.find(session_id);
+    if (it == _sessions.end()) return StepUpResult::SessionInvalid;
+    const uint64_t now = _clock();
+    if (isExpiredLocked(it->second, now)) return StepUpResult::SessionInvalid;
+    if (!verify_fn || !verify_fn())       return StepUpResult::BadCode;
+
+    Session rotated = it->second;
+    _sessions.erase(it);
+    rotated.session_id     = _id_gen();
+    rotated.step_up_at_ms  = now;
+    rotated.last_active_ms = now;
+    const std::string new_id = rotated.session_id;
+    _sessions[new_id] = std::move(rotated);
+    if (out_new_id) *out_new_id = new_id;
+    return StepUpResult::Ok;
+}
+
+bool SessionManager::requiresStepUp(const std::string& session_id, uint64_t max_age_ms) const
+{
+    auto it = _sessions.find(session_id);
+    if (it == _sessions.end()) return true;
+    if (it->second.step_up_at_ms == 0) return true;
+    const uint64_t now = _clock();
+    return (now - it->second.step_up_at_ms) >= max_age_ms;
 }
 
 std::size_t SessionManager::countActiveForUser(const std::string& user_id) const

@@ -33,13 +33,45 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/logging/Hmac.cc
     ${M130_CUSTOM_DIR}/src/logging/ReplayEngine.cc
     ${M130_CUSTOM_DIR}/src/logging/Sha256.cc
-    ${M130_CUSTOM_DIR}/src/access/UserManager.cc
+    ${M130_CUSTOM_DIR}/src/access/Authenticator.cc
+    ${M130_CUSTOM_DIR}/src/access/Base32.cc
+    ${M130_CUSTOM_DIR}/src/access/PasswordHasher.cc
+    ${M130_CUSTOM_DIR}/src/access/Pbkdf2.cc
+    ${M130_CUSTOM_DIR}/src/access/Blake2b.cc
+    ${M130_CUSTOM_DIR}/src/access/Argon2.cc
+    ${M130_CUSTOM_DIR}/src/access/Ber.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapMessage.cc
+    ${M130_CUSTOM_DIR}/src/access/GssAuthenticator.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapDn.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapFilter.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapAuthenticator.cc
+    ${M130_CUSTOM_DIR}/src/access/CertPolicy.cc
+    ${M130_CUSTOM_DIR}/src/access/MtlsAuthenticator.cc
     ${M130_CUSTOM_DIR}/src/access/SessionManager.cc
+    ${M130_CUSTOM_DIR}/src/access/Totp.cc
+    ${M130_CUSTOM_DIR}/src/access/UserManager.cc
     ${M130_CUSTOM_DIR}/src/protocol/ProtocolVersion.cc
     ${M130_CUSTOM_DIR}/src/protocol/MessageRouter.cc
     ${M130_CUSTOM_DIR}/src/protocol/M130Dialect.cc
     ${M130_CUSTOM_DIR}/src/protocol/generated/M130Messages.generated.cc
     ${M130_CUSTOM_DIR}/src/protocol/generated/M130DialectTable.generated.cc
+    ${M130_CUSTOM_DIR}/src/views/ChecklistModel.cc
+    ${M130_CUSTOM_DIR}/src/views/CountdownClock.cc
+    ${M130_CUSTOM_DIR}/src/views/IipPredictor.cc
+    ${M130_CUSTOM_DIR}/src/views/ReplayController.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Timeseries.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Window.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Fft.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Spectrum.cc
+    ${M130_CUSTOM_DIR}/src/analysis/MheInnovationMonitor.cc
+    ${M130_CUSTOM_DIR}/src/tuning/MpcTuningModel.cc
+    ${M130_CUSTOM_DIR}/src/geo/Wgs84.cc
+    ${M130_CUSTOM_DIR}/src/geo/Geodesic.cc
+    ${M130_CUSTOM_DIR}/src/nav/TrajectoryModel.cc
+    ${M130_CUSTOM_DIR}/src/nav/MapCorridor.cc
+    ${M130_CUSTOM_DIR}/src/nav/CorridorMonitor.cc
+    ${M130_CUSTOM_DIR}/src/weather/WeatherOverlay.cc
+    ${M130_CUSTOM_DIR}/src/weather/NotamModel.cc
 )
 target_include_directories(m130_core PUBLIC ${M130_CUSTOM_DIR}/src)
 
@@ -80,3 +112,33 @@ m130_add_test(HmacSha256Test)
 m130_add_test(FdrReaderTest)
 m130_add_test(ReplayEngineTest)
 m130_add_test(FdrExporterTest)
+m130_add_test(ChecklistModelTest)
+m130_add_test(CountdownClockTest)
+m130_add_test(IipPredictorTest)
+m130_add_test(ReplayControllerTest)
+m130_add_test(AuthenticatorChainTest)
+m130_add_test(Base32Test)
+m130_add_test(Pbkdf2Test)
+m130_add_test(TotpTest)
+m130_add_test(RingBufferTest)
+m130_add_test(TimeseriesTest)
+m130_add_test(FftTest)
+m130_add_test(SpectrumTest)
+m130_add_test(MheInnovationMonitorTest)
+m130_add_test(MpcTuningModelTest)
+m130_add_test(Blake2bTest)
+m130_add_test(Argon2Test)
+m130_add_test(LdapDnTest)
+m130_add_test(LdapFilterTest)
+m130_add_test(LdapAuthenticatorTest)
+m130_add_test(CertPolicyTest)
+m130_add_test(BerTest)
+m130_add_test(LdapMessageTest)
+m130_add_test(GssAuthenticatorTest)
+m130_add_test(Wgs84Test)
+m130_add_test(GeodesicTest)
+m130_add_test(TrajectoryModelTest)
+m130_add_test(MapCorridorTest)
+m130_add_test(CorridorMonitorTest)
+m130_add_test(WeatherOverlayTest)
+m130_add_test(NotamModelTest)
