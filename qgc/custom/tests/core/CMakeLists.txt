@@ -33,6 +33,8 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/protocol/ProtocolVersion.cc
     ${M130_CUSTOM_DIR}/src/protocol/MessageRouter.cc
     ${M130_CUSTOM_DIR}/src/protocol/M130Dialect.cc
+    ${M130_CUSTOM_DIR}/src/protocol/generated/M130Messages.generated.cc
+    ${M130_CUSTOM_DIR}/src/protocol/generated/M130DialectTable.generated.cc
 )
 target_include_directories(m130_core PUBLIC ${M130_CUSTOM_DIR}/src)
 
@@ -67,3 +69,4 @@ m130_add_test(ProtocolVersionTest)
 m130_add_test(MessageRouterTest)
 m130_add_test(M130DialectTest)
 m130_add_test(SafetyAggregatorTest)
+m130_add_test(M130GeneratedCodecTest)

@@ -52,6 +52,21 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.h
     # Access layer (used by CommandAuthorization)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Role.h
+    # Protocol layer (pure-C++) + generated dialect
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/ProtocolVersion.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/ProtocolVersion.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/MessageRouter.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/MessageRouter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/M130Dialect.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/M130Dialect.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated/M130Enums.generated.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated/M130Messages.generated.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated/M130Messages.generated.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated/M130DialectTable.generated.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated/M130DialectTable.generated.h
+    # Telemetry FactGroups driven by the generated dialect
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/telemetry/M130GncStateFactGroup.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/telemetry/M130GncStateFactGroup.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -67,6 +82,8 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated
     CACHE INTERNAL "" FORCE
 )
 

@@ -64,3 +64,6 @@ jobs:
 
       - name: Validate m130 MAVLink dialect
         run: python3 qgc/custom/tools/validate-dialect.py
+
+      - name: Verify generated dialect headers are fresh
+        run: python3 qgc/custom/tools/generate-dialect.py --check

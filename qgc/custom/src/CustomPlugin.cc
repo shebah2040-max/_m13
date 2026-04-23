@@ -5,7 +5,15 @@
 #include "AppSettings.h"
 #include "Vehicle.h"
 #include "RocketTelemetryFactGroup.h"
+#include "FirmwarePlugin/CustomFirmwarePlugin.h"
 #include "safety/SafetyKernel.h"
+#include "protocol/M130Dialect.h"
+#include "protocol/ProtocolVersion.h"
+#include "protocol/generated/M130DialectTable.generated.h"
+#include "protocol/generated/M130Messages.generated.h"
+#include "telemetry/M130GncStateFactGroup.h"
+
+#include <cstring>
 
 #include <QtCore/QApplicationStatic>
 #include <QtQml/QQmlApplicationEngine>
@@ -85,6 +93,17 @@ bool CustomPlugin::mavlinkMessage(Vehicle *vehicle, LinkInterface * /*link*/, co
         }
     }
 
+    // ------------------------------------------------------------------
+    // Pillar 2 — dispatch M130 custom dialect messages (42000-42255).
+    // Messages are decoded from their MAVLink v2 payload via the generated
+    // structs; CRC validation happens one layer up in the QGC mavlink stack.
+    // ------------------------------------------------------------------
+    if (m130::protocol::isM130Id(message.msgid)) {
+        _dispatchM130Message(vehicle, message);
+        // Fall through: we do NOT return early so MAVLink Inspector still
+        // sees the message and other plugins can observe it.
+    }
+
     if (message.msgid == MAVLINK_MSG_ID_DEBUG_FLOAT_ARRAY) {
         mavlink_debug_float_array_t dbg;
         mavlink_msg_debug_float_array_decode(&message, &dbg);
@@ -112,6 +131,61 @@ bool CustomPlugin::mavlinkMessage(Vehicle *vehicle, LinkInterface * /*link*/, co
         }
     }
     return true;
+}
+
+// ============================================================================
+// _dispatchM130Message — يفك ترميز رسائل m130 الخاصة باستخدام الكود المُولَّد
+// من m130.xml ثم يوزّعها على الطبقات المستهلكة (FactGroups + Safety Kernel).
+// ============================================================================
+
+void CustomPlugin::_dispatchM130Message(Vehicle *vehicle, const mavlink_message_t &message)
+{
+    using namespace m130::protocol::gen;
+
+    // MAVLink v2 keeps the payload inside the same packet after CRC framing
+    // has been stripped. `mavlink_message_t::payload64` is 8-byte aligned.
+    const std::uint8_t* payload = reinterpret_cast<const std::uint8_t*>(
+        _MAV_PAYLOAD(&message));
+    const std::size_t len = static_cast<std::size_t>(message.len);
+
+    switch (message.msgid) {
+    case M130HeartbeatExtended::kMsgId: {
+        M130HeartbeatExtended hb;
+        if (!M130HeartbeatExtended::unpack(payload, len, hb)) break;
+        const auto peer = m130::protocol::ProtocolVersion::unpack(hb.protocol_version);
+        const auto compat = m130::protocol::checkCompat(peer);
+        if (_safetyKernel) {
+            _safetyKernel->feed(QStringLiteral("heartbeat"));
+            if (compat.compat == m130::protocol::VersionCompat::MajorMismatch) {
+                // Reject telemetry from an incompatible major — operator must
+                // be notified so they can update one side.
+                // A full Alert raise is emitted later by the version watcher;
+                // for now we short-circuit to keep the UI stable.
+                (void) compat;
+            }
+        }
+        break;
+    }
+    case M130GncState::kMsgId: {
+        M130GncState gnc;
+        if (!M130GncState::unpack(payload, len, gnc)) break;
+        if (auto *fwp = qobject_cast<CustomFirmwarePlugin*>(vehicle ? vehicle->firmwarePlugin() : nullptr)) {
+            if (auto *fg = fwp->m130GncFactGroup()) {
+                fg->applyState(gnc);
+            }
+        }
+        if (_safetyKernel) {
+            _safetyKernel->feed(QStringLiteral("gnc_state"));
+            _safetyKernel->evaluateSample(QStringLiteral("phi"), gnc.phi);
+            _safetyKernel->evaluateSample(QStringLiteral("alpha_est"), gnc.alpha_est);
+        }
+        break;
+    }
+    default:
+        // Known dialect id but no handler yet (tracked in ICD-MAVLink.md §3.2).
+        // Deliberately no-op so the Message Router can still tee into FDR.
+        break;
+    }
 }
 
 // ============================================================================
