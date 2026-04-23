@@ -31,19 +31,50 @@
 #
 ############################################################################
 
-# Paths to acados and generated solver code
-# Use environment variables if set, otherwise fall back to defaults
-if(DEFINED ENV{ACADOS_ROOT})
-	set(ACADOS_ROOT $ENV{ACADOS_ROOT})
-else()
-	set(ACADOS_ROOT "/home/yoga/m13/acados-main")
+# rocket_mpc depends on acados + hpipm + blasfeo shared libraries
+# (libacados.so, libhpipm.so, libblasfeo.so) and on Linux/Android-only
+# scheduling APIs (sched_setaffinity, SYS_gettid, /sys/devices/.../cpu_capacity).
+# Dynamic linking and those APIs do not exist on NuttX targets (Pixhawk / STM32),
+# so this module is POSIX-only by design. Skip the entire build on NuttX to
+# prevent accidental enablement via a board Kconfig from breaking firmware builds.
+if("${PX4_PLATFORM}" STREQUAL "nuttx")
+	message(STATUS "rocket_mpc: skipped on NuttX (POSIX/Linux-only module)")
+	return()
 endif()
 
-if(DEFINED ENV{M130_SOLVER_ROOT})
-	set(SOLVER_ROOT $ENV{M130_SOLVER_ROOT})
-else()
-	set(SOLVER_ROOT "/home/yoga/m13/c_generated_code")
+# Paths to acados and generated solver code.
+#
+# Resolution order (first match wins):
+#   1. CMake cache variable (e.g. `-DACADOS_ROOT=/path`)
+#   2. Environment variable (`ACADOS_ROOT`, `M130_SOLVER_ROOT`)
+#   3. Repo-relative default: `<m13>/acados-main` and `<m13>/c_generated_code`
+#
+# The repo root is 5 levels above PX4_SOURCE_DIR
+# (PX4-Autopilot/../../../../.. == AndroidApp/app/src/main/cpp/.. == m13).
+set(M13_REPO_ROOT "${PX4_SOURCE_DIR}/../../../../..")
+
+if(NOT DEFINED ACADOS_ROOT)
+	if(DEFINED ENV{ACADOS_ROOT})
+		set(ACADOS_ROOT $ENV{ACADOS_ROOT})
+	else()
+		set(ACADOS_ROOT "${M13_REPO_ROOT}/acados-main")
+	endif()
 endif()
+
+if(NOT DEFINED M130_SOLVER_ROOT)
+	if(DEFINED ENV{M130_SOLVER_ROOT})
+		set(SOLVER_ROOT $ENV{M130_SOLVER_ROOT})
+	else()
+		set(SOLVER_ROOT "${M13_REPO_ROOT}/c_generated_code")
+	endif()
+else()
+	set(SOLVER_ROOT "${M130_SOLVER_ROOT}")
+endif()
+
+# Normalise to absolute paths so downstream target_include_directories /
+# target_link_libraries calls do not depend on the current source dir.
+get_filename_component(ACADOS_ROOT "${ACADOS_ROOT}" ABSOLUTE)
+get_filename_component(SOLVER_ROOT "${SOLVER_ROOT}" ABSOLUTE)
 
 # Collect generated solver C sources
 set(SOLVER_SOURCES
@@ -103,6 +134,7 @@ px4_add_module(
 		${ACADOS_ROOT}/include/blasfeo/include
 		${ACADOS_ROOT}/include/hpipm/include
 	DEPENDS
+		geo
 		mathlib
 		px4_work_queue
 	)

@@ -1310,9 +1310,7 @@ enum class params : uint16_t {
 	RM_COURSE_CTL_TH,
 	RM_WHEEL_TRACK,
 	RM_YAW_STK_GAIN,
-	ROCKET_APC_LIM,
-	ROCKET_AYC_LIM,
-	ROCKET_GND_TEST,
+	ROCKET_CRUISE_P,
 	ROCKET_HTRGT,
 	ROCKET_IMPULS,
 	ROCKET_IMP_ANG,
@@ -1322,29 +1320,16 @@ enum class params : uint16_t {
 	ROCKET_IYY_F,
 	ROCKET_IZZ_D,
 	ROCKET_IZZ_F,
-	ROCKET_K_VZ,
-	ROCKET_K_YAW,
-	ROCKET_L_ALT,
-	ROCKET_L_PITCH,
 	ROCKET_MASS_D,
 	ROCKET_MASS_F,
-	ROCKET_MAX_DEFL,
-	ROCKET_MAX_RATE,
 	ROCKET_MHE_QG,
 	ROCKET_MPC_TF,
-	ROCKET_NPN,
-	ROCKET_SET_ALT,
 	ROCKET_SITL_GPS,
-	ROCKET_TAU_PN1,
-	ROCKET_TAU_SRV,
 	ROCKET_TBURN,
 	ROCKET_THRUST,
 	ROCKET_T_CTRL,
-	ROCKET_T_STG1,
 	ROCKET_T_TAIL,
 	ROCKET_XTRGT,
-	ROCKET_YTRGT,
-	ROCKET_ZTRGT,
 	RO_ACCEL_LIM,
 	RO_DECEL_LIM,
 	RO_JERK_LIM,
@@ -8468,18 +8453,8 @@ static constexpr param_info_s parameters[] = {
 	},
 
 	{
-		.name = "ROCKET_APC_LIM",
-		.val = { .f = 8.0 },
-	},
-
-	{
-		.name = "ROCKET_AYC_LIM",
-		.val = { .f = 2.0 },
-	},
-
-	{
-		.name = "ROCKET_GND_TEST",
-		.val = { .i = 0 },
+		.name = "ROCKET_CRUISE_P",
+		.val = { .f = 0.65 },
 	},
 
 	{
@@ -8528,26 +8503,6 @@ static constexpr param_info_s parameters[] = {
 	},
 
 	{
-		.name = "ROCKET_K_VZ",
-		.val = { .f = 14.0 },
-	},
-
-	{
-		.name = "ROCKET_K_YAW",
-		.val = { .f = 0.008 },
-	},
-
-	{
-		.name = "ROCKET_L_ALT",
-		.val = { .f = 1200.0 },
-	},
-
-	{
-		.name = "ROCKET_L_PITCH",
-		.val = { .f = 15.0 },
-	},
-
-	{
 		.name = "ROCKET_MASS_D",
 		.val = { .f = 11.11 },
 	},
@@ -8555,16 +8510,6 @@ static constexpr param_info_s parameters[] = {
 	{
 		.name = "ROCKET_MASS_F",
 		.val = { .f = 12.74 },
-	},
-
-	{
-		.name = "ROCKET_MAX_DEFL",
-		.val = { .f = 0.436 },
-	},
-
-	{
-		.name = "ROCKET_MAX_RATE",
-		.val = { .f = 250.0 },
 	},
 
 	{
@@ -8578,28 +8523,8 @@ static constexpr param_info_s parameters[] = {
 	},
 
 	{
-		.name = "ROCKET_NPN",
-		.val = { .f = 3.0 },
-	},
-
-	{
-		.name = "ROCKET_SET_ALT",
-		.val = { .f = 100.0 },
-	},
-
-	{
 		.name = "ROCKET_SITL_GPS",
 		.val = { .i = 0 },
-	},
-
-	{
-		.name = "ROCKET_TAU_PN1",
-		.val = { .f = 15.0 },
-	},
-
-	{
-		.name = "ROCKET_TAU_SRV",
-		.val = { .f = 0.015 },
 	},
 
 	{
@@ -8614,12 +8539,7 @@ static constexpr param_info_s parameters[] = {
 
 	{
 		.name = "ROCKET_T_CTRL",
-		.val = { .f = 0.5 },
-	},
-
-	{
-		.name = "ROCKET_T_STG1",
-		.val = { .f = 4.0 },
+		.val = { .f = 0.3 },
 	},
 
 	{
@@ -8629,17 +8549,7 @@ static constexpr param_info_s parameters[] = {
 
 	{
 		.name = "ROCKET_XTRGT",
-		.val = { .f = 3000.0 },
-	},
-
-	{
-		.name = "ROCKET_YTRGT",
-		.val = { .f = 0.0 },
-	},
-
-	{
-		.name = "ROCKET_ZTRGT",
-		.val = { .f = 0.0 },
+		.val = { .f = 2600.0 },
 	},
 
 	{
@@ -13103,9 +13013,7 @@ static constexpr param_type_t parameters_type[] = {
 	PARAM_TYPE_FLOAT,
 	PARAM_TYPE_FLOAT,
 	PARAM_TYPE_FLOAT,
-	PARAM_TYPE_FLOAT,
-	PARAM_TYPE_FLOAT,
-	PARAM_TYPE_INT32, // ROCKET_GND_TEST
+	PARAM_TYPE_FLOAT, // ROCKET_CRUISE_P
 	PARAM_TYPE_FLOAT, // ROCKET_HTRGT
 	PARAM_TYPE_FLOAT, // ROCKET_IMPULS
 	PARAM_TYPE_FLOAT, // ROCKET_IMP_ANG
@@ -13115,29 +13023,16 @@ static constexpr param_type_t parameters_type[] = {
 	PARAM_TYPE_FLOAT, // ROCKET_IYY_F
 	PARAM_TYPE_FLOAT, // ROCKET_IZZ_D
 	PARAM_TYPE_FLOAT, // ROCKET_IZZ_F
-	PARAM_TYPE_FLOAT, // ROCKET_K_VZ
-	PARAM_TYPE_FLOAT, // ROCKET_K_YAW
-	PARAM_TYPE_FLOAT, // ROCKET_L_ALT
-	PARAM_TYPE_FLOAT, // ROCKET_L_PITCH
 	PARAM_TYPE_FLOAT, // ROCKET_MASS_D
 	PARAM_TYPE_FLOAT, // ROCKET_MASS_F
-	PARAM_TYPE_FLOAT, // ROCKET_MAX_DEFL
-	PARAM_TYPE_FLOAT, // ROCKET_MAX_RATE
 	PARAM_TYPE_FLOAT, // ROCKET_MHE_QG
 	PARAM_TYPE_FLOAT, // ROCKET_MPC_TF
-	PARAM_TYPE_FLOAT, // ROCKET_NPN
-	PARAM_TYPE_FLOAT, // ROCKET_SET_ALT
 	PARAM_TYPE_INT32, // ROCKET_SITL_GPS
-	PARAM_TYPE_FLOAT, // ROCKET_TAU_PN1
-	PARAM_TYPE_FLOAT, // ROCKET_TAU_SRV
 	PARAM_TYPE_FLOAT, // ROCKET_TBURN
 	PARAM_TYPE_FLOAT, // ROCKET_THRUST
 	PARAM_TYPE_FLOAT, // ROCKET_T_CTRL
-	PARAM_TYPE_FLOAT, // ROCKET_T_STG1
 	PARAM_TYPE_FLOAT, // ROCKET_T_TAIL
 	PARAM_TYPE_FLOAT, // ROCKET_XTRGT
-	PARAM_TYPE_FLOAT, // ROCKET_YTRGT
-	PARAM_TYPE_FLOAT, // ROCKET_ZTRGT
 	PARAM_TYPE_FLOAT,
 	PARAM_TYPE_FLOAT,
 	PARAM_TYPE_FLOAT,

@@ -1,5 +1,11 @@
+---
+noteId: "754c87203e8811f19f7a5d62fc7c3ce2"
+tags: []
+
+---
+
 # CLAUDE.md — M130 GNC MPC: المرجع الثابت
-> آخر تحديث: 2026-04-20
+> آخر تحديث: 2026-04-22
 > هذا الملف يحتوي **فقط** على المعلومات الثابتة للمشروع (فيزياء، رياضيات، بنية، أوامر)
 > كل المعلومات المتغيرة (حالة، اكتشافات، نتائج، خطط) موجودة في `.claude/ARCHITECT.md`
 
@@ -15,13 +21,18 @@ PROJECT_ROOT = مسار مجلد m13 على الجهاز الحالي
 
 **المسارات المتكررة** (نسبية من PROJECT_ROOT):
 ```
-PYTHON_MPC  = 6DOF_v4_pure/mpc/m130_mpc_autopilot.py
-CPP_MPC     = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_gnc_mpc/RocketGncMpc.cpp
-CPP_HPP     = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_gnc_mpc/RocketGncMpc.hpp
-CPP_PARAMS  = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_gnc_mpc/rocket_gnc_mpc_params.c
-CPP_MHE     = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mhe_nav/RocketMheNav.cpp
-BRIDGE      = sitl_hil_bridge_v3.py
+PYTHON_MPC      = 6DOF_v4_pure/mpc/m130_mpc_autopilot.py
+CPP_MODULE      = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mpc/RocketMPC.cpp
+CPP_MPC_CTRL    = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mpc/mpc_controller.cpp
+CPP_MPC_H       = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mpc/mpc_controller.h
+CPP_LOS         = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mpc/los_guidance.cpp
+CPP_MHE         = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mpc/mhe_estimator.cpp
+CPP_SENSOR      = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mpc/sensor_bridge.cpp
+CPP_PARAMS      = AndroidApp/app/src/main/cpp/PX4-Autopilot/src/modules/rocket_mpc/rocket_mpc_params.c
+BRIDGE          = sitl_hil_bridge_v3.py
 ```
+
+> ⚠️ **تغيير هيكلي (2026-04-22)**: الوحدة القديمة `rocket_gnc_mpc/RocketGncMpc.cpp` أُعيد هيكلتها إلى `rocket_mpc/` متعددة الملفات. المسارات القديمة لم تعد صالحة.
 
 ### 0.2 نظام ملفات العمل (.claude/)
 
@@ -174,7 +185,7 @@ BRIDGE      = sitl_hil_bridge_v3.py
 Python model (m130_acados_model.py)
     → OCP setup (m130_ocp_setup.py)
         → AcadosOcpSolver → C code → c_generated_code/
-            → نسخ يدوي إلى: rocket_gnc_mpc/acados_generated/
+            → نسخ يدوي إلى: rocket_mpc/acados_generated/
             → بناء APK (acados مترجم لـ ARM64)
 ```
 **الثوابت الحرجة**: h مقسوم على 100, x مقسوم على 1000, y مقسوم على 1000 (normalization).
@@ -196,7 +207,16 @@ Python model (m130_acados_model.py)
 │   │   ├── m130_mpc_autopilot.py    # ★ التنفيذ المرجعي (MpcController)
 │   │   ├── m130_mhe_model.py        # نموذج MHE
 │   │   ├── m130_mhe_ocp_setup.py    # إعداد MHE OCP
-│   │   └── m130_mhe_estimator.py    # مقدّر MHE
+│   │   ├── m130_mhe_estimator.py    # مقدّر MHE
+│   │   ├── m130_sensor_bus.py       # 🆕 حافلة بيانات حساسات
+│   │   └── mavlink_bridge_pil.py    # 🆕 جسر PIL عبر MAVLink
+│   ├── pil/                          # 🆕 المرحلة 2.5: PIL
+│   │   ├── pil_runner.py            # مشغّل PIL
+│   │   ├── pil_config.yaml          # إعدادات PIL
+│   │   └── results/                 # نتائج PIL
+│   ├── hil/                          # جسر HIL
+│   │   ├── hil_runner.py
+│   │   └── mavlink_bridge_hil.py
 │   ├── config/6dof_config_advanced.yaml
 │   ├── data/rocket_models/Qabthah1/ # بيانات الصاروخ (CSV + YAML)
 │   ├── c_generated_code/            # كود Acados C المولّد
@@ -204,21 +224,20 @@ Python model (m130_acados_model.py)
 │
 ├── sitl_hil_bridge_v3.py            # الجسر بين المحاكاة و PX4
 │
-├── AndroidApp/                       # المرحلة 3: تطبيق Android
+├── AndroidApp/                       # المرحلة 3+: تطبيق Android
 │   └── app/src/main/cpp/
 │       ├── PX4-Autopilot/src/modules/
-│       │   ├── rocket_gnc_mpc/       # ★ وحدة MPC C++ (يجب أن تطابق Python)
-│       │   │   ├── RocketGncMpc.cpp
-│       │   │   ├── RocketGncMpc.hpp
-│       │   │   ├── rocket_gnc_mpc_params.c
-│       │   │   └── acados_generated/
-│       │   └── rocket_mhe_nav/       # وحدة MHE C++
-│       │       ├── RocketMheNav.cpp
-│       │       ├── RocketMheNav.hpp
-│       │       ├── rocket_mhe_nav_params.c
+│       │   └── rocket_mpc/           # ★ وحدة MPC C++ معيارية (يجب أن تطابق Python)
+│       │       ├── RocketMPC.cpp     # الحاوية الرئيسية (Module Manager) — 1876 سطر
+│       │       ├── RocketMPC.hpp     # header الوحدة
+│       │       ├── mpc_controller.cpp/h  # حل MPC (wraps acados) — 645 سطر
+│       │       ├── los_guidance.cpp/h    # توجيه هندسي نقي — 148 سطر
+│       │       ├── mhe_estimator.cpp/h   # مُقدّر MHE
+│       │       ├── sensor_bridge.cpp/h   # معالجة uORB topics
+│       │       ├── rocket_mpc_params.c  # معاملات PX4
 │       │       └── acados_generated/
 │       ├── px4_jni.cpp
-│       └── acados_generated/         # نسخة ثالثة مشتركة
+│       └── acados_generated/         # نسخة مشتركة
 │
 └── acados-main/                      # مكتبة Acados (Linux + ARM64)
 ```
@@ -237,11 +256,17 @@ Python model (m130_acados_model.py)
 - يستقبل HIL_ACTUATOR_CONTROLS
 - Warmup: 12s بيانات ثابتة, auto-arm, إطلاق عند t=3s
 
+**المرحلة 2.5 (PIL) 🆕**:
+- Processor-In-Loop: PX4 C++ على ARM64 hardware حقيقي (ليس هاتف Android)
+- الفيزياء Python 6DOF محلياً + كود PX4 على ARM64
+- `pil_runner.py` + `mavlink_bridge_pil.py` عبر MAVLink TCP
+- المخرجات: `pil_flight.csv` + `pil_timing.csv` (توقيتات MPC/MHE)
+
 **المرحلة 3 (HITL)**:
-- PX4 يعمل على **هاتف Samsung** كـ APK
+- PX4 يعمل على **هاتف Samsung** كـ APK (Android Package)
 - Bridge مع `--hitl` flag
 - اتصال USB Ethernet: PC (10.42.0.1) ↔ Phone (10.42.0.174)
-- `SYS_HITL=1` يفعّل تعديلات خاصة (gamma_ref bias, gamma_base, h_cruise_w)
+- `SYS_HITL=1` يفعّل تعديلات خاصة في المعاملات
 
 ---
 
@@ -254,16 +279,18 @@ Python model (m130_acados_model.py)
 | النموذج الرياضي | `6DOF_v4_pure/mpc/m130_acados_model.py` | مصدر الحقيقة للفيزياء |
 | إعداد OCP | `6DOF_v4_pure/mpc/m130_ocp_setup.py` | القيود والتكاليف |
 | **MPC Python** | `6DOF_v4_pure/mpc/m130_mpc_autopilot.py` | **★ التنفيذ المرجعي** |
-| **MPC C++** | `AndroidApp/.../rocket_gnc_mpc/RocketGncMpc.cpp` | **يجب أن يطابق Python** |
-| MPC C++ header | `AndroidApp/.../rocket_gnc_mpc/RocketGncMpc.hpp` | أبعاد ومتغيرات |
+| **MPC حل C++** | `AndroidApp/.../rocket_mpc/mpc_controller.cpp` | **منطق MPC — يجب أن يطابق Python** |
+| **LOS توجيه C++** | `AndroidApp/.../rocket_mpc/los_guidance.cpp` | توجيه هندسي — يجب أن يطابق Python |
+| MPC header | `AndroidApp/.../rocket_mpc/mpc_controller.h` | ثوابت وأبعاد |
 
 ### أولوية 2
 
 | الملف | المسار النسبي | الدور |
 |-------|---------------|-------|
+| الوحدة الرئيسية C++ | `AndroidApp/.../rocket_mpc/RocketMPC.cpp` | حلقة التشغيل الرئيسية |
 | Bridge | `sitl_hil_bridge_v3.py` | الجسر بين المحاكاة و PX4 |
-| PX4 params | `AndroidApp/.../rocket_gnc_mpc/rocket_gnc_mpc_params.c` | قيم المعاملات |
-| MHE C++ | `AndroidApp/.../rocket_mhe_nav/RocketMheNav.cpp` | المقدّر |
+| PX4 params | `AndroidApp/.../rocket_mpc/rocket_mpc_params.c` | قيم المعاملات |
+| MHE C++ | `AndroidApp/.../rocket_mpc/mhe_estimator.cpp` | المقدّر |
 | Acados MPC header | `6DOF_v4_pure/c_generated_code/acados_solver_m130_rocket.h` | أبعاد المحلّل |
 
 ### أولوية 3

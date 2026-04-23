@@ -1,24 +1,24 @@
 {
     "code_gen_opts": {
-        "acados_include_path": "/home/yoga/m13/acados-main/include",
-        "acados_lib_path": "/home/yoga/m13/acados-main/lib",
+        "acados_include_path": "/home/hk/workspaces/external_projects/acados/include",
+        "acados_lib_path": "/home/hk/workspaces/external_projects/acados/lib",
         "acados_link_libs": {
             "clarabel": "",
             "daqp": "",
             "hpmpc": "",
             "ooqp": "",
             "openmp": "",
-            "osqp": "",
+            "osqp": "-losqp",
             "qpdunes": "",
-            "qpoases": ""
+            "qpoases": "-lqpOASES_e"
         },
-        "acados_version": "unknown",
-        "code_export_directory": "/home/yoga/m13/c_generated_code",
+        "acados_version": "a2b45f4b3",
+        "code_export_directory": "/home/hk/workspaces/System/real_sim/mpc/m13/6DOF_v4_pure/c_generated_code",
         "cython_include_dirs": [
-            "/home/yoga/m13/.venv/lib/python3.10/site-packages/numpy/_core/include",
-            "/usr/include/python3.10"
+            "/home/hk/.global-python-env/lib/python3.12/site-packages/numpy/_core/include",
+            "/usr/include/python3.12"
         ],
-        "json_file": "/home/yoga/m13/6DOF_v4_pure/mpc/m130_mpc_autopilot.json",
+        "json_file": "/home/hk/workspaces/System/real_sim/mpc/m13/6DOF_v4_pure/mpc/m130_mpc_autopilot.json",
         "os": "unix",
         "shared_lib_ext": ".so"
     },
@@ -1873,7 +1873,7 @@
         "m130_rocket_model/m130_rocket_expl_vde_adj.c"
     ],
     "external_function_files_ocp": [],
-    "hash": "b022411ddc0c1abc6e6c786ac91b45d3",
+    "hash": "9b11a175a8092a11a13a50faedb1074d",
     "model": {
         "con_h_expr": [],
         "con_h_expr_0": [],

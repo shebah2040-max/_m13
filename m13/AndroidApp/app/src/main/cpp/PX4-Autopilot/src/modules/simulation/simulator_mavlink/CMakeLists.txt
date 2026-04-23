@@ -56,7 +56,9 @@ px4_add_module(
 include(sitl_targets_flightgear.cmake)
 include(sitl_targets_gazebo-classic.cmake)
 include(sitl_targets_jmavsim.cmake)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/sitl_targets_jsbsim.cmake" AND EXISTS "${PX4_SOURCE_DIR}/Tools/simulation/jsbsim/jsbsim_bridge/CMakeLists.txt")
 include(sitl_targets_jsbsim.cmake)
+endif()
 
 
 # none_iris (legacy compatibility launch helper)

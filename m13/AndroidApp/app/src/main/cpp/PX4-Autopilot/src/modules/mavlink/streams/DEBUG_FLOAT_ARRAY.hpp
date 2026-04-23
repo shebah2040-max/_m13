@@ -110,7 +110,7 @@ private:
 			msg.data[3]  = gnc.q_kgf;
 			msg.data[4]  = gnc.pitch_accel_cmd;
 			msg.data[5]  = gnc.yaw_accel_cmd;
-			msg.data[6]  = gnc.yaw_los_deg;
+			msg.data[6]  = gnc.blend_alpha;
 			msg.data[7]  = gnc.delta_roll;
 			msg.data[8]  = gnc.delta_pitch;
 			msg.data[9]  = gnc.delta_yaw;
@@ -123,11 +123,11 @@ private:
 			msg.data[16] = gnc.rho;
 			msg.data[17] = (float)gnc.servo_online_mask;
 
-			// Currently missing from existing topic
+			// Solver / MHE diagnostics (renamed from repurposed legacy fields)
 			msg.data[18] = gnc.phi;
-			msg.data[19] = gnc.wx_filter;
-			msg.data[20] = gnc.du_roll;
-			msg.data[21] = gnc.out_integ_roll;
+			msg.data[19] = gnc.mpc_solve_ms;
+			msg.data[20] = gnc.mhe_quality;
+			msg.data[21] = (float)gnc.mpc_solve_count;
 
 			// New fields - attitude angles
 			msg.data[22] = gnc.theta;
@@ -153,6 +153,40 @@ private:
 			msg.data[34] = gnc.dt_actual;
 			msg.data[35] = gnc.dt_min;
 			msg.data[36] = gnc.dt_max;
+
+			// Solver diagnostics (previously dropped — see RocketGncStatus.msg)
+			msg.data[37] = gnc.mhe_solve_ms;
+			msg.data[38] = (float)gnc.mpc_solver_status;
+			msg.data[39] = (float)gnc.mpc_sqp_iter;
+			msg.data[40] = (float)gnc.mhe_valid;
+			msg.data[41] = (float)gnc.mhe_status;
+
+			// Cross-validation (EKF vs MHE)
+			msg.data[42] = gnc.xval_gamma_err;
+			msg.data[43] = gnc.xval_chi_err;
+			msg.data[44] = gnc.xval_alt_err;
+			msg.data[45] = gnc.xval_penalty;
+
+			// Cycle timing (µs) — replaces the old DEBUG_VECT("TIMING")
+			// channel. Ground tooling should read timing from here.
+			msg.data[46] = (float)gnc.mhe_solve_us;
+			msg.data[47] = (float)gnc.mpc_solve_us;
+			msg.data[48] = (float)gnc.cycle_us;
+
+			// Cumulative event counters (per-flight). Cast to float is
+			// lossless up to 2^24 ≈ 16M events; well beyond any realistic
+			// per-flight count for these states.
+			msg.data[49] = (float)gnc.mpc_fail_count;
+			msg.data[50] = (float)gnc.mpc_nan_skip_count;
+			msg.data[51] = (float)gnc.mhe_fail_count;
+			msg.data[52] = (float)gnc.fin_clamp_count;
+			msg.data[53] = (float)gnc.xval_reset_count;
+			msg.data[54] = (float)gnc.servo_offline_events;
+
+			// GPS quality snapshot (raw feed consumed by MHE)
+			msg.data[55] = (float)gnc.gps_fix_type;
+			msg.data[56] = (float)gnc.gps_satellites_used;
+			msg.data[57] = (float)gnc.gps_jamming_state;
 
 			mavlink_msg_debug_float_array_send_struct(_mavlink->get_channel(), &msg);
 			sent = true;

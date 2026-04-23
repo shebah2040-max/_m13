@@ -1,22 +1,22 @@
 {
     "code_gen_opts": {
-        "acados_include_path": "/home/yoga/m13/acados-main/include",
-        "acados_lib_path": "/home/yoga/m13/acados-main/lib",
+        "acados_include_path": "/home/hk/workspaces/external_projects/acados/include",
+        "acados_lib_path": "/home/hk/workspaces/external_projects/acados/lib",
         "acados_link_libs": {
             "clarabel": "",
             "daqp": "",
             "hpmpc": "",
             "ooqp": "",
             "openmp": "",
-            "osqp": "",
+            "osqp": "-losqp",
             "qpdunes": "",
-            "qpoases": ""
+            "qpoases": "-lqpOASES_e"
         },
-        "acados_version": "unknown",
-        "code_export_directory": "/home/yoga/m13/6DOF_v4_pure/c_generated_code",
+        "acados_version": "a2b45f4b3",
+        "code_export_directory": "/home/hk/workspaces/System/real_sim/mpc/m13/6DOF_v4_pure/c_generated_code",
         "cython_include_dirs": [
-            "/home/yoga/.local/lib/python3.10/site-packages/numpy/_core/include",
-            "/usr/include/python3.10"
+            "/home/hk/.global-python-env/lib/python3.12/site-packages/numpy/_core/include",
+            "/usr/include/python3.12"
         ],
         "json_file": "m130_mhe_ocp.json",
         "os": "unix",
@@ -3650,7 +3650,7 @@
         "m130_mhe_cost/m130_mhe_cost_y_fun_jac_ut_xt.c",
         "m130_mhe_cost/m130_mhe_cost_y_hess.c"
     ],
-    "hash": "bfb9b58b136e61a642712dc05ab5d350",
+    "hash": "5178ab4a638baa22ae7ec0ac2407704d",
     "model": {
         "con_h_expr": [],
         "con_h_expr_0": [],
@@ -3768,10 +3768,10 @@
         0.0,
         0.0,
         12.74,
-        600.0,
-        0.0373,
-        1.122,
-        1.122,
+        893.5,
+        0.0389,
+        1.1651,
+        1.166,
         1200.0
     ],
     "problem_class": "OCP",

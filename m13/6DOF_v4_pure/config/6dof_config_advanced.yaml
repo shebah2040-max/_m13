@@ -122,24 +122,24 @@ autopilot:
   mpc:
     N_horizon: 80             # عدد خطوات الأفق
     tf: 4.0                   # s - أفق الزمن
-    t_ctrl: 0.2               # s - زمن بدء التحكم بعد الإطلاق
+    t_ctrl: 0.3               # s - زمن بدء التحكم بعد الإطلاق
     dt_solve: 0.02            # s - فترة استدعاء MPC (كل 20ms)
     delta_rate_limit_dps: 250.0  # deg/s - حد معدل تغيير الزعانف (أقل من actuator.rate_max=270)
     cruise_gamma_deg: -1.0     # deg - زاوية مسار الطيران أثناء مرحلة الإبحار (أقل = مسار أفقي أكثر = مدى أبعد)
 
 # موقع الإطلاق (Launch Site) - المصدر الوحيد لارتفاع موقع الإطلاق
 launch:
-  latitude: 16.457472         # deg (16°27'26.9"N)
-  longitude: 44.115361        # deg (44°06'55.3"E)
-  altitude: 1200.0           # m above sea level (ارتفاع موقع الإطلاق - SINGLE SOURCE)
+  latitude: 27.9000           # deg (27°54'N) — صحراء النفود، شمال المملكة العربية السعودية (افتراضي)
+  longitude: 41.2000          # deg (41°12'E) — رمال حمراء مع أشجار أكاسيا متفرقة
+  altitude: 1000.0            # m above sea level (ارتفاع موقع الإطلاق - SINGLE SOURCE)
 
 # ==========================================================================
 # الهدف (Target) - الأولوية 1: range_m+bearing_deg | الأولوية 2: lat+lon
 # ==========================================================================
 target:
-  range_m: 3000          # m
+  range_m: 2600          # m
   bearing_deg: 0              # deg من الشمال
-  altitude: 1200.0             # m above sea level (ارتفاع نقطة الاصطدام - impact elevation)
+  altitude: 1000.0            # m above sea level (ارتفاع نقطة الاصطدام - impact elevation)
   # latitude: 18.231732       # deg (230 km from launch at bearing 329°)
   # longitude: 43.001430      # deg (230 km from launch at bearing 329°)
 

@@ -58,7 +58,10 @@
 #include <uORB/topics/actuator_servos.h>
 #include <uORB/topics/rocket_gnc_status.h>
 #include <uORB/topics/debug_array.h>
-#include <uORB/topics/debug_vect.h>
+// NOTE: debug_vect is no longer used by this module. Cycle timing moved
+// to rocket_gnc_status.{mhe_solve_us, mpc_solve_us, cycle_us} to avoid
+// the shared debug_vect uORB instance colliding with mavlink_receiver's
+// inbound DEBUG_VECT republishing.
 #include <systemlib/mavlink_log.h>
 
 #include "mpc_controller.h"
@@ -69,6 +72,7 @@
 using namespace time_literals;
 using matrix::Eulerf;
 using matrix::Quatf;
+using matrix::Dcmf;
 using matrix::Vector3f;
 
 #define MODULE_NAME "rocket_mpc"
@@ -97,6 +101,19 @@ private:
 	// pipeline when the vehicle is disarmed.
 	void _reset_flight_state();
 
+	// Extract bearing (heading of body-X projected onto NED horizontal plane)
+	// directly from the quaternion. This is numerically stable near pitch=±90°
+	// where Eulerf::psi() loses meaning (gimbal lock). When body-X is nearly
+	// vertical (|horizontal projection| < 1e-2) the bearing is undefined and
+	// `fallback` is returned instead.
+	static float _bearing_from_quat(const Quatf &q, float fallback);
+
+	// Extract launch pitch (elevation of body-X above the NED horizontal
+	// plane) directly from the DCM column of the quaternion.  Numerically
+	// stable through pitch = ±90° (gimbal lock), which is exactly where
+	// a near-vertical rocket operates; Eulerf::theta() is not.
+	static float _pitch_from_quat(const Quatf &q);
+
 	// ---------------------------------------------------------------
 	// Sub-systems
 	// ---------------------------------------------------------------
@@ -123,8 +140,17 @@ private:
 	uORB::Publication<actuator_outputs_s>  _actuator_outputs_sim_pub{ORB_ID(actuator_outputs_sim)};
 	uORB::Publication<actuator_servos_s>   _actuator_servos_pub{ORB_ID(actuator_servos)};
 	uORB::Publication<rocket_gnc_status_s> _rocket_gnc_status_pub{ORB_ID(rocket_gnc_status)};
-	uORB::Publication<debug_vect_s>        _timing_debug_pub{ORB_ID(debug_vect)};
 
+
+	// ---------------------------------------------------------------
+	// Cycle-timing snapshot (populated once per Run(), consumed by the
+	// rocket_gnc_status publisher below). Replaces the former debug_vect
+	// "TIMING" publication: a dedicated snapshot inside our own topic is
+	// immune to mavlink_receiver's inbound DEBUG_VECT injection and is
+	// logged by default without requiring add_debug_topics().
+	uint32_t _mhe_solve_us{0};
+	uint32_t _mpc_solve_us{0};
+	uint32_t _cycle_us{0};
 
 	// ---------------------------------------------------------------
 	// State variables
@@ -142,19 +168,84 @@ private:
 	float _sin_bearing{0.0f};
 	float _target_downrange{0.0f};
 
-	// Actual launch altitude MSL captured at arming (replaces hardcoded param for MHE)
+	// Launch-time state captured from sensors at arming (replaces the old
+	// ROCKET_L_ALT / ROCKET_L_PITCH params, which were error-prone user
+	// inputs that had to be updated by hand for every flight):
+	//   _actual_launch_alt_msl — MSL altitude, from GPS (arm / pre-launch)
+	//                            or baro (launch-detection fallback)
+	//   _actual_launch_pitch_rad — body-X elevation above horizon (rail
+	//                              angle), from attitude at arm + every
+	//                              pre-launch cycle, used to recompute
+	//                              gamma_natural for LOS feedforward
 	float _actual_launch_alt_msl{0.0f};
 	bool  _launch_alt_captured{false};
+	float _actual_launch_pitch_rad{0.0f};
+	bool  _launch_pitch_captured{false};
 
 	bool  _hitl{false};  // HITL mode: use lpos reference frame for MHE (avoid GPS origin mismatch)
 
 	// Cached fin commands for lockstep republish
-	float _last_fins[4]{0.0f, 0.0f, 0.0f, 0.0f};
+	float _last_fins[4] {0.0f, 0.0f, 0.0f, 0.0f};
 	float _last_de{0.0f}, _last_dr{0.0f}, _last_da{0.0f};
 	hrt_abstime _last_mpc_solve_time{0};
 
+	// ── Cumulative per-flight event counters (surfaced in rocket_gnc_status
+	//    so transient events are not lost between MAVLink DEBUG_FLOAT_ARRAY
+	//    samples, which fire at 20 Hz vs. the 100 Hz+ publish rate.) All
+	//    reset in _reset_flight_state.
+	uint32_t _mpc_fail_count{0};
+	uint32_t _mpc_nan_skip_count{0};
+	uint32_t _mhe_fail_count{0};
+	uint32_t _fin_clamp_total{0};     // solves where any fin clamped (edge counter)
+	uint32_t _xval_reset_count{0};
+	uint32_t _servo_offline_events{0};
+
+	// Last servo online mask observed from xqpower_can feedback (SRV_FB),
+	// used to detect online→offline edge transitions for telemetry.
+	uint8_t _prev_servo_online_mask{0};
+	bool    _prev_servo_mask_valid{false};
+
+	// Latched GPS quality snapshot (mirrored into rocket_gnc_status).
+	uint8_t _gps_fix_type{0};
+	uint8_t _gps_sats_used{0};
+	uint8_t _gps_jamming_state{0};
+
+	// ── Per-fin saturation-clamp telemetry ──
+	// The acados solver's polytopic constraint limits the MIXED fins only on
+	// the *actual* servo state (delta_*_act in x[15..17]). The published fin
+	// command, however, is derived from the *commanded* servo state
+	// (delta_*_s from x[12..14]), which has only individual ±delta_max box
+	// bounds — no polytopic coupling. So during aggressive transients, the
+	// mixed value (delta_a ± delta_e ± delta_r) can legally exceed delta_max
+	// even when every virtual channel is in-box and the solver succeeded.
+	//
+	// The per-fin math::constrain() in RocketMPC.cpp is therefore NOT just a
+	// safety net for SQP_RTI failures — it is the actual enforcement of the
+	// polytopic fin-mix bound on the commanded path. These counters measure
+	// how often that enforcement actually fires; a persistently non-zero
+	// rate is diagnostic and argues for adding polytopic on delta_*_s in
+	// m130_ocp_setup.py (requires regenerating the solver).
+	uint32_t _fin_clamp_count[4] {};   // per-fin activation count
+	uint32_t _fin_clamp_any{0};        // solves with >=1 fin clamped
+	uint32_t _fin_clamp_solves{0};     // valid-solve denominator
+	uint32_t _fin_clamp_report_at{0};  // next solve index at which to print
+
 	// Tracked actual fin deflections (first-order lag filter)
 	float _de_act{0.0f}, _dr_act{0.0f}, _da_act{0.0f};
+
+	// Latest full MPC state vector (x0 passed to the acados solver).  Cached so
+	// rocket_gnc_status can publish x_mpc[18] on every cycle, including ticks
+	// that reuse the previous fin command without re-solving.
+	float _last_x_mpc[18] {};
+	bool  _have_x_mpc{false};
+
+	// Latest MPC solver diagnostics
+	int      _last_mpc_status{-1};
+	uint32_t _last_mpc_sqp_iter{0};
+
+	// Latest MHE diagnostics
+	int   _last_mhe_status{-1};
+	bool  _last_mhe_valid{false};
 
 	// MHE-derived state cache (for logging & publish)
 	bool  _mhe_publishing{false};
@@ -175,6 +266,9 @@ private:
 		float chi_err{0.0f};           // last |chi_mhe - chi_ekf|
 		float alt_err{0.0f};           // last |alt_mhe - alt_ekf|
 	} _xval;
+
+	// Baro staleness one-shot warning (reset on each flight)
+	bool _baro_stale_warned{false};
 
 	// dt measurement
 	hrt_abstime _prev_run_time{0};
@@ -218,13 +312,6 @@ private:
 		(ParamFloat<px4::params::ROCKET_IYY_D>)     _param_iyy_d,
 		(ParamFloat<px4::params::ROCKET_IZZ_F>)     _param_izz_f,
 		(ParamFloat<px4::params::ROCKET_IZZ_D>)     _param_izz_d,
-
-		// Servo
-		(ParamFloat<px4::params::ROCKET_TAU_SRV>)   _param_tau_servo,
-
-		// Launch site
-		(ParamFloat<px4::params::ROCKET_L_ALT>)     _param_launch_alt,
-		(ParamFloat<px4::params::ROCKET_L_PITCH>)   _param_launch_pitch,
 
 		// MHE
 		(ParamFloat<px4::params::ROCKET_MHE_QG>)    _param_mhe_qg,

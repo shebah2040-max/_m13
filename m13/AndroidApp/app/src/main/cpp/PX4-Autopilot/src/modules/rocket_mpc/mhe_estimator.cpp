@@ -192,6 +192,12 @@ void MheEstimator::push_measurement(float t, const double y_meas[MHE_NMEAS])
 		float dt_actual = t - _meas_buf[last_idx].t;
 
 		if (dt_actual > 3.0f * _cfg.horizon_dt) {
+			// Snapshot validity BEFORE clearing it — the reseed block
+			// below needs to know whether _last_valid.x_hat was
+			// populated by a successful solve. Checking _last_valid.valid
+			// after `_last_valid.valid = false` always reads false.
+			const bool had_valid_estimate = _last_valid.valid;
+
 			_meas_count   = 0;
 			_meas_head    = 0;
 			_param_count  = 0;
@@ -200,6 +206,28 @@ void MheEstimator::push_measurement(float t, const double y_meas[MHE_NMEAS])
 			_last_valid.quality = 0.0f;
 			_consec_fails = 0;
 			_last_solve_t = -1.0f;
+
+			// Re-seed the arrival cost mean.  Without this, the first solve
+			// after the gap anchors the NEW window to the pre-gap arrival
+			// state via P0 — up to hundreds of metres / tens of degrees of
+			// stale bias depending on how long the gap lasted.  The
+			// cross-validation / startup ramp gates will still suppress the
+			// output until the solver re-converges, but the optimiser burns
+			// several cycles fighting a phantom arrival target.
+			//
+			// Best available seed is the last valid estimate (the state we
+			// had just before losing measurements).  If we never had one,
+			// fall back to zero — the measurement likelihood alone will
+			// dominate once `min_init_meas` samples accumulate.
+			if (had_valid_estimate) {
+				memcpy(_x_bar, _last_valid.x_hat, MHE_NX * sizeof(double));
+			} else {
+				memset(_x_bar, 0, sizeof(_x_bar));
+			}
+
+			// Re-engage the startup ramp so mhe_authority cannot fire on
+			// the first solve after the gap, matching reinit_state().
+			_solve_count = 0;
 		}
 	}
 
@@ -306,28 +334,41 @@ MheOutput MheEstimator::update(float t)
 		ocp_nlp_cost_model_set(_nlp_config, _nlp_dims, _nlp_in, k, "yref", yref_k);
 	}
 
-	// Parameters for each interval
-	// Set params for ALL stages (not just 0..N_use-1).  Stages beyond
-	// our measurement window still participate in the NLP dynamics and
-	// need valid mass/thrust/inertia parameters to avoid NaN.
+	// Parameters for each interval — ALIGNED WITH THE MEASUREMENT WINDOW.
+	//
+	// push_measurement() and push_params() are called atomically from
+	// RocketMPC::Run() inside the same `if (smeas.valid)` block, and the
+	// gap detector in push_measurement() flushes both ring buffers
+	// together, so _meas_head == _param_head and _meas_count == _param_count
+	// at all times.  That means the correct start index for params is the
+	// same `start_idx` used for the measurements above.
+	//
+	// The old code used `_param_head - _param_count` (the OLDEST sample in
+	// the buffer), which drifts up to (_param_count - n_use) * horizon_dt
+	// away from the measurement window.  Once the 64-slot buffer is
+	// saturated and n_use == horizon_steps + 1 == 21, the offset is
+	// 43 * 20 ms = 860 ms: stage-0 params (δ_e_act/δ_r_act/δ_a_act, mass,
+	// thrust, inertias) came from ~860 ms before the stage-0 measurement,
+	// so the solver evaluated aero forces with fin positions that didn't
+	// match the observation.  That biased α/β/b_gyro and inflated w_norm,
+	// pushing quality below qg_thr for no real reason.
+	//
+	// Stages [0, n_use-1] now take time-aligned params; stages beyond the
+	// measurement count (only reachable if min_init_meas < horizon_steps+1)
+	// repeat the newest params, mirroring the measurement loop above.
 	for (int k = 0; k < _cfg.horizon_steps; k++) {
 		double p_k[MHE_NP];
 
-		if (k < _param_count) {
-			int p_start = (_param_head - _param_count);
-
-			if (p_start < 0) { p_start += BUF_SIZE; }
-
-			int p_idx = (p_start + k) % BUF_SIZE;
+		if (k < n_use) {
+			int p_idx = (start_idx + k) % BUF_SIZE;
 			memcpy(p_k, _param_buf[p_idx].p, MHE_NP * sizeof(double));
 
-		} else {
-			// Use last available params for stages beyond buffer
-			int p_last = (_param_head - 1) % BUF_SIZE;
-
-			if (p_last < 0) { p_last += BUF_SIZE; }
-
+		} else if (_param_count > 0) {
+			int p_last = (_param_head - 1 + BUF_SIZE) % BUF_SIZE;
 			memcpy(p_k, _param_buf[p_last].p, MHE_NP * sizeof(double));
+
+		} else {
+			memset(p_k, 0, sizeof(p_k));
 		}
 
 		m130_mhe_acados_update_params(_capsule, k, p_k, MHE_NP);
@@ -379,6 +420,35 @@ MheOutput MheEstimator::update(float t)
 		if (_consec_fails >= _cfg.max_consec_fails) {
 			PX4_ERR("MHE frozen: too many consecutive failures");
 			return _frozen_output();
+		}
+
+		// Mid-streak recovery: once consecutive failures pass half the
+		// hard limit, re-seed the arrival cost from the last valid
+		// estimate (the NaN x_hat from this solve is unusable) and
+		// re-engage the startup ramp.  Without this the optimiser keeps
+		// linearising around the same bad x_bar every cycle and the NaN
+		// streak can ride all the way to max_consec_fails, freezing MHE
+		// for the rest of the flight.
+		const int reseed_threshold = _cfg.max_consec_fails / 2;
+
+		if (reseed_threshold > 0 && _consec_fails == reseed_threshold) {
+			if (_last_valid.valid) {
+				memcpy(_x_bar, _last_valid.x_hat, MHE_NX * sizeof(double));
+				// Re-warm-start all solver nodes from the last good
+				// estimate so SQP linearises from a finite point
+				// instead of whatever junk the NaN solve left behind.
+				for (int k = 0; k <= _cfg.horizon_steps; k++) {
+					ocp_nlp_out_set(_nlp_config, _nlp_dims, _nlp_out,
+							_nlp_in, k, "x", (void *)_x_bar);
+				}
+				double u_zero[MHE_NU] = {};
+				for (int k = 0; k < _cfg.horizon_steps; k++) {
+					ocp_nlp_out_set(_nlp_config, _nlp_dims, _nlp_out,
+							_nlp_in, k, "u", u_zero);
+				}
+			}
+			_solve_count = 0;
+			PX4_WARN("MHE mid-streak reseed at fail #%d", _consec_fails);
 		}
 
 		// Progressive quality decay on consecutive failures.

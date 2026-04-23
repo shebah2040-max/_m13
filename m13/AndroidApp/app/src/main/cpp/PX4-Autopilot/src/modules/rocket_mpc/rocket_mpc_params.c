@@ -58,7 +58,7 @@
  * @decimal 2
  * @group Rocket MPC
  */
-PARAM_DEFINE_FLOAT(ROCKET_T_CTRL, 0.5f);
+PARAM_DEFINE_FLOAT(ROCKET_T_CTRL, 0.3f);
 
 /* ===================================================================
  *  Target
@@ -291,46 +291,30 @@ PARAM_DEFINE_FLOAT(ROCKET_IZZ_D, 1.0779f);
 
 /* ===================================================================
  *  Servo dynamics
- * =================================================================== */
-
-/**
- * Servo time constant (first-order lag)
  *
- * @unit s
- * @min 0.001
- * @max 0.5
- * @decimal 3
- * @group Rocket MPC
- */
-PARAM_DEFINE_FLOAT(ROCKET_TAU_SRV, 0.015f);
+ *  NOTE: The servo time constant is NOT a parameter — it is baked
+ *  into the acados-generated solver at 0.015 s (Qabthah1 KST X20-7.4
+ *  electric servo). See m130_acados_model.py::tau_servo_val and
+ *  SOLVER_TAU_SERVO_S in RocketMPC.cpp. Changing it requires
+ *  regenerating the solver AND updating SOLVER_TAU_SERVO_S so the
+ *  forward-guess warm start and the MHE lag filter stay consistent
+ *  with the solver's internal servo model.
+ * =================================================================== */
 
 /* ===================================================================
  *  Launch site
+ *
+ *  Launch-site altitude and rail elevation are NOT parameters: they are
+ *  captured directly from the sensor suite at arming / pre-launch:
+ *    - altitude ASL  -> GPS 3D fix (real flight) / lpos.ref_alt (HITL),
+ *                       with baro fallback at launch detection
+ *    - rail pitch    -> attitude quaternion at arm + every pre-launch
+ *                       cycle; see RocketMPC::_pitch_from_quat().
+ *  Any "set once in params" design was a porting leftover from the
+ *  simulator config and was the root cause of two silent-failure bugs
+ *  (1150 m launch_alt mismatch saturating MHE's h state; wrong rail
+ *  angle skewing LOS gamma_natural feedforward).
  * =================================================================== */
-
-/**
- * Launch site altitude ASL
- *
- * Used for atmosphere model and MHE altitude reference.
- *
- * @unit m
- * @min 0.0
- * @max 10000.0
- * @decimal 0
- * @group Rocket MPC
- */
-PARAM_DEFINE_FLOAT(ROCKET_L_ALT, 1200.0f);
-
-/**
- * Launch rail elevation angle
- *
- * @unit deg
- * @min 0.0
- * @max 90.0
- * @decimal 1
- * @group Rocket MPC
- */
-PARAM_DEFINE_FLOAT(ROCKET_L_PITCH, 15.0f);
 
 /* ===================================================================
  *  MHE quality gate

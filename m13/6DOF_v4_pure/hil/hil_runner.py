@@ -45,12 +45,26 @@ _APP_MAIN_ACTIVITY = f"{_APP_PACKAGE}/.MainActivity"
 
 
 def _adb() -> str | None:
-    """يحاول تحديد مسار adb. يُرجع None إن لم يُعثر عليه."""
-    for cand in (
+    """يحاول تحديد مسار adb. يُرجع None إن لم يُعثر عليه.
+
+    أولوية البحث:
+      1) متغيّر البيئة ``M13_ADB`` (مسار صريح محدَّد من المستخدم)
+      2) ``adb`` في ``PATH`` (المسار الأنسب عبر الأجهزة)
+      3) المسار الافتراضي للـ Android SDK في home (``~/Android/Sdk/...``)
+
+    الإصدارات السابقة تضمّنت مساراً مُرمَّزاً صُلباً لجهاز مستخدم معيّن
+    (``/home/yoga/...``). حُذف لصالح portability عبر بيئات التطوير
+    (M7).
+    """
+    env_path = os.environ.get("M13_ADB")
+    cands = []
+    if env_path:
+        cands.append(env_path)
+    cands.extend([
         shutil.which("adb"),
-        "/home/yoga/Android/Sdk/platform-tools/adb",
         os.path.expanduser("~/Android/Sdk/platform-tools/adb"),
-    ):
+    ])
+    for cand in cands:
         if cand and os.path.isfile(cand) and os.access(cand, os.X_OK):
             return cand
     return None
@@ -174,23 +188,48 @@ def _q2euler_deg(q0, q1, q2, q3):
 
 
 def load_csv(path: str) -> dict:
-    raw: dict[str, list] = {}
-    str_cols: dict[str, list[str]] = {}
+    """يقرأ CSV بأعمدة رقمية ونصية مختلطة.
+
+    الإصدار السابق كان يستخدم heuristic ``try float except str`` لكل خلية
+    على حدة، فأي خطأ formatting في عمود رقمي يُبدّل القيمة إلى 0.0 بصمت
+    وكان يضع العمود النصي كـ ``[0.0]*n`` (M6). الجديد:
+
+      1) يُحمّل كل الصفوف أولاً،
+      2) لكل عمود يفحص كل خلاياه غير الفارغة: إن حاولنا ``float()`` عليها
+         ونجحت جميعها → عمود رقمي؛ وإلا → عمود نصي،
+      3) الأعمدة الرقمية تُخزَّن كـ ``np.ndarray``،
+      4) الأعمدة النصية تُخزَّن تحت ``_str_<name>`` فقط؛ لا يُضاف مفتاح
+         رقمي عدم مُزيّف (لكن نُبقي المفتاح الرقمي المصفوف من أصفار إن
+         وُجد له consumer downstream — لا يوجد حالياً، لذا نُسقطه).
+
+    النتيجة: رُبّما عمود fin_source يصبح متاحاً فقط عبر
+    ``data['_str_fin_source']`` — وهو ما يفعله ``_analyze_servo_tracking``
+    بالفعل.
+    """
     with open(path, "r", encoding="utf-8") as f:
         r = csv.DictReader(f)
-        for k in r.fieldnames or []:
-            raw[k] = []
-            str_cols[k] = []
-        for row in r:
-            for k in r.fieldnames or []:
-                try:
-                    raw[k].append(float(row[k]))
-                except (ValueError, TypeError):
-                    raw[k].append(0.0)
-                    str_cols[k].append(row[k] if row[k] else "")
-    data = {k: np.array(v) for k, v in raw.items()}
-    for k, vals in str_cols.items():
-        if any(v != "" for v in vals):
+        fieldnames = list(r.fieldnames or [])
+        rows = list(r)
+
+    data: dict = {}
+    for k in fieldnames:
+        vals = [row.get(k, "") for row in rows]
+        # فحص النوع: محاولة تحويل كل خلية غير فارغة إلى float.
+        is_numeric = True
+        nums: list[float] = []
+        for v in vals:
+            if v == "" or v is None:
+                nums.append(0.0)
+                continue
+            try:
+                nums.append(float(v))
+            except (ValueError, TypeError):
+                is_numeric = False
+                break
+        if is_numeric:
+            data[k] = np.array(nums)
+        else:
+            # عمود نصي: نحتفظ بالقيم الخام تحت prefix ``_str_`` فقط.
             data[f"_str_{k}"] = vals
     for canon, cands in _ALIASES.items():
         if canon in data:
@@ -267,18 +306,23 @@ def _analyze_servo_tracking(hil_data: dict) -> dict:
     cmd_rad = np.column_stack([hil_data["fin_cmd_1"], hil_data["fin_cmd_2"],
                                hil_data["fin_cmd_3"], hil_data["fin_cmd_4"]])
 
-    # نحسب MAE/P95 فقط على الخطوات التي fin_source == "can" (فيدباك حيّ)
-    # — خطوات hold/cmd/abort تحتوي على fin_act مُطابق للأمر (err=0) أو
-    # قديم، ما يُلوّث إحصاء أداء العتاد الحقيقي.
+    # نحسب MAE/P95 فقط على الخطوات التي fin_source == "can" (فيدباك حيّ).
+    # الخطوات الأخرى لها دلالات مختلفة لا يجب خلطها مع أداء العتاد:
+    #   "cmd"   — grace period قبل أول فيدباك؛ fin_act = cmd (خطأ=0 مصطنع)
+    #   "hold"  — آخر فيدباك CAN (stale)؛ fin_act قديم، يُلوّث الإحصاء
+    #   "abort" — فيدباك مفقود بعد grace؛ fin_act قديم
     # load_csv يضع القيم النصية في "_str_fin_source" وأصفاراً في "fin_source"
     # (لأن float("can") يرفع) — نُفضّل النسخة النصية.
     fin_source = hil_data.get("_str_fin_source") or hil_data.get("fin_source")
     if fin_source is not None and len(fin_source) == n:
-        can_mask = np.asarray(
-            [str(s).strip() == "can" for s in fin_source], dtype=bool
-        )
+        src = np.asarray([str(s).strip() for s in fin_source])
+        can_mask = src == "can"
+        hold_steps = int((src == "hold").sum())
+        cmd_steps = int((src == "cmd").sum())
+        abort_steps = int((src == "abort").sum())
     else:
         can_mask = np.ones(n, dtype=bool)
+        hold_steps = cmd_steps = abort_steps = 0
 
     # خطأ التتبع: fin_act يجب أن يتبع fin_cmd مع تأخير العتاد الفيزيائي
     err_deg = np.abs(np.degrees(act_rad - cmd_rad))
@@ -306,6 +350,10 @@ def _analyze_servo_tracking(hil_data: dict) -> dict:
         "available": True,
         "total_steps": n,
         "can_steps": can_steps,
+        "hold_steps": hold_steps,
+        "cmd_steps": cmd_steps,
+        "abort_steps": abort_steps,
+        "can_ratio": float(can_steps / n) if n > 0 else 0.0,
         "tracking_mae_deg": float(np.mean(tracked_err)),
         "tracking_p95_deg": float(np.percentile(tracked_err, 95)),
         "tracking_p99_deg": float(np.percentile(tracked_err, 99)),
@@ -401,7 +449,17 @@ def _print_summary(m: dict, th: dict) -> None:
     # تتبع السيرفو (fin_act ↔ fin_cmd — العتاد الحقيقي)
     srv = m.get("servo_tracking", {})
     if srv.get("available", False):
-        print(f"\n  [servo tracking] fin_act vs fin_cmd   steps={srv.get('total_steps',0)}")
+        total = srv.get("total_steps", 0)
+        print(f"\n  [servo tracking] fin_act vs fin_cmd   steps={total}")
+        # توزيع fin_source (عرض تشخيصي — لا يُستخدم في البوابة حالياً).
+        # نسبة can < 90% مؤشّر على أن معظم الرحلة لم يُستخدم فيها
+        # فيدباك حيّ، فتفسير MAE/P95 يصبح محدوداً.
+        can_s = srv.get("can_steps", 0)
+        ratio = srv.get("can_ratio", 0.0)
+        print(f"    fin_source: can={can_s} ({ratio*100:.1f}%)  "
+              f"hold={srv.get('hold_steps', 0)}  "
+              f"cmd={srv.get('cmd_steps', 0)}  "
+              f"abort={srv.get('abort_steps', 0)}")
         if srv.get("can_frames") is not None:
             print(f"    CAN frames={srv['can_frames']}  "
                   f"CAN-cmd MAE={srv.get('can_cmd_mae_deg',0):.2f}°  "
