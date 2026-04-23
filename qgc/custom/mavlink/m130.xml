@@ -1,0 +1,287 @@
+<?xml version="1.0"?>
+<!--
+  M130 Custom MAVLink Dialect
+  =============================================================================
+  Document ID : ICD-M130-MAVLINK-001  (authoritative ICD)
+  Revision    : A (Foundation)
+  Scope       : Messages exchanged between M130 GCS and rocket_mpc on PX4.
+  Message IDs : Reserved block 42000..42255 for M130 Project.
+
+  Rule of thumb:
+    * ANY field added here MUST map 1:1 to a FactGroup property in
+      qgc/custom/src/telemetry/<group>FactGroup.{h,cc}.
+    * ANY new command here MUST be listed with its minimum Role in
+      qgc/custom/docs/requirements/ICD-MAVLink.md §2.2.
+    * Changing protocol_version.Major on HEARTBEAT_EXTENDED is a BREAKING change.
+-->
+<mavlink>
+  <include>common.xml</include>
+  <version>1</version>
+  <dialect>130</dialect>
+
+  <enums>
+    <enum name="M130_FLIGHT_PHASE">
+      <description>Mission state machine phases — matches src/safety/MissionStateMachine.h</description>
+      <entry value="0" name="M130_PHASE_UNKNOWN"/>
+      <entry value="1" name="M130_PHASE_IDLE"/>
+      <entry value="2" name="M130_PHASE_PRELAUNCH"/>
+      <entry value="3" name="M130_PHASE_ARMED"/>
+      <entry value="4" name="M130_PHASE_BOOST"/>
+      <entry value="5" name="M130_PHASE_CRUISE"/>
+      <entry value="6" name="M130_PHASE_TERMINAL"/>
+      <entry value="7" name="M130_PHASE_LANDED"/>
+      <entry value="8" name="M130_PHASE_ABORT"/>
+    </enum>
+
+    <enum name="M130_ALERT_LEVEL">
+      <description>ARINC 661 alert levels — matches src/safety/AlertManager.h</description>
+      <entry value="0" name="M130_ALERT_NONE"/>
+      <entry value="1" name="M130_ALERT_ADVISORY"/>
+      <entry value="2" name="M130_ALERT_CAUTION"/>
+      <entry value="3" name="M130_ALERT_WARNING"/>
+      <entry value="4" name="M130_ALERT_EMERGENCY"/>
+    </enum>
+
+    <enum name="M130_SYSTEM_STATE_FLAGS">
+      <description>Bitmask in M130_HEARTBEAT_EXTENDED.system_state</description>
+      <entry value="1"     name="M130_STATE_ARMED"/>
+      <entry value="2"     name="M130_STATE_LAUNCHED"/>
+      <entry value="4"     name="M130_STATE_SAFETY_OK"/>
+      <entry value="8"     name="M130_STATE_SOLVER_OK"/>
+      <entry value="16"    name="M130_STATE_SENSORS_OK"/>
+      <entry value="32"    name="M130_STATE_LINK_OK"/>
+      <entry value="64"    name="M130_STATE_FTS_ARMED"/>
+      <entry value="128"   name="M130_STATE_FTS_FIRED"/>
+      <entry value="256"   name="M130_STATE_ABORT_REQUESTED"/>
+      <entry value="512"   name="M130_STATE_HOLD_ACTIVE"/>
+      <entry value="1024"  name="M130_STATE_DEGRADED"/>
+    </enum>
+
+    <enum name="M130_SOLVER_STATUS">
+      <entry value="0" name="M130_SOLVER_OK"/>
+      <entry value="1" name="M130_SOLVER_FAIL"/>
+      <entry value="2" name="M130_SOLVER_MAX_ITER"/>
+      <entry value="3" name="M130_SOLVER_NAN"/>
+      <entry value="4" name="M130_SOLVER_INFEASIBLE"/>
+    </enum>
+
+    <enum name="M130_FTS_REASON">
+      <entry value="0" name="M130_FTS_REASON_MANUAL_RSO"/>
+      <entry value="1" name="M130_FTS_REASON_ENVELOPE_VIOLATION"/>
+      <entry value="2" name="M130_FTS_REASON_LOSS_OF_CONTROL"/>
+      <entry value="3" name="M130_FTS_REASON_LINK_LOSS"/>
+      <entry value="4" name="M130_FTS_REASON_IIP_OUT_OF_CORRIDOR"/>
+      <entry value="5" name="M130_FTS_REASON_BATTERY_CRITICAL"/>
+    </enum>
+
+    <enum name="M130_CMD_ACK_RESULT">
+      <entry value="0" name="M130_ACK_OK"/>
+      <entry value="1" name="M130_ACK_REJECTED_AUTH"/>
+      <entry value="2" name="M130_ACK_REJECTED_STATE"/>
+      <entry value="3" name="M130_ACK_REJECTED_RANGE"/>
+      <entry value="4" name="M130_ACK_REJECTED_VERSION"/>
+      <entry value="5" name="M130_ACK_TIMEOUT"/>
+      <entry value="6" name="M130_ACK_FTS_ARMED"/>
+      <entry value="7" name="M130_ACK_FTS_FIRED"/>
+    </enum>
+  </enums>
+
+  <messages>
+    <!-- ================================================================= -->
+    <!-- Inbound (vehicle -> GCS)                                            -->
+    <!-- ================================================================= -->
+
+    <message id="42000" name="M130_HEARTBEAT_EXTENDED">
+      <description>Extended heartbeat from rocket_mpc @ 1 Hz.</description>
+      <field type="uint32_t" name="protocol_version">Major&lt;&lt;16 | Minor&lt;&lt;8 | Patch</field>
+      <field type="uint32_t" name="system_state">Bitmask M130_SYSTEM_STATE_FLAGS</field>
+      <field type="uint32_t" name="uptime_s">Seconds since boot</field>
+      <field type="uint32_t" name="flight_id">Incremented on each ARM</field>
+      <field type="uint16_t" name="flags">Reserved / custom flags</field>
+      <field type="uint8_t"  name="flight_phase" enum="M130_FLIGHT_PHASE">Current mission phase</field>
+      <field type="uint8_t"  name="alert_level"  enum="M130_ALERT_LEVEL">Highest active alert</field>
+    </message>
+
+    <message id="42001" name="M130_GNC_STATE">
+      <description>Primary GNC state @ 20 Hz.</description>
+      <field type="uint64_t" name="time_usec"       units="us">Boot time</field>
+      <field type="uint8_t"  name="stage"           enum="M130_FLIGHT_PHASE"/>
+      <field type="uint8_t"  name="launched"/>
+      <field type="uint16_t" name="mode"/>
+      <field type="float"    name="q_dyn"           units="Pa"/>
+      <field type="float"    name="rho"             units="kg/m^3"/>
+      <field type="float"    name="altitude"        units="m">Above takeoff</field>
+      <field type="float"    name="airspeed"        units="m/s"/>
+      <field type="float"    name="phi"             units="deg"/>
+      <field type="float"    name="theta"           units="deg"/>
+      <field type="float"    name="psi"             units="deg"/>
+      <field type="float"    name="alpha_est"       units="deg"/>
+      <field type="float"    name="gamma_rad"       units="rad"/>
+      <field type="float"    name="pos_downrange"   units="m"/>
+      <field type="float"    name="pos_crossrange"  units="m"/>
+      <field type="float"    name="vel_downrange"   units="m/s"/>
+      <field type="float"    name="vel_down"        units="m/s"/>
+      <field type="float"    name="vel_crossrange"  units="m/s"/>
+      <field type="float"    name="bearing_deg"     units="deg"/>
+      <field type="float"    name="target_range_rem" units="m"/>
+      <field type="int32_t"  name="iip_lat_e7"      units="degE7">Instantaneous Impact Point latitude</field>
+      <field type="int32_t"  name="iip_lon_e7"      units="degE7">Instantaneous Impact Point longitude</field>
+      <field type="float"    name="iip_alt"         units="m"/>
+    </message>
+
+    <message id="42002" name="M130_MHE_DIAGNOSTICS">
+      <description>MHE estimator diagnostics @ 10 Hz.</description>
+      <field type="uint64_t" name="time_usec"    units="us"/>
+      <field type="uint32_t" name="solve_count"/>
+      <field type="uint32_t" name="fail_count"/>
+      <field type="uint32_t" name="solve_us"     units="us"/>
+      <field type="float"    name="quality"      units="ratio"/>
+      <field type="float"    name="blend_alpha"  units="ratio"/>
+      <field type="float"    name="xval_gamma_err" units="deg"/>
+      <field type="float"    name="xval_chi_err"   units="deg"/>
+      <field type="float"    name="xval_alt_err"   units="m"/>
+      <field type="float"    name="xval_penalty"/>
+      <field type="uint8_t"  name="valid"/>
+      <field type="uint8_t"  name="status" enum="M130_SOLVER_STATUS"/>
+      <field type="uint32_t" name="reset_count"/>
+    </message>
+
+    <message id="42003" name="M130_MPC_DIAGNOSTICS">
+      <description>MPC controller diagnostics @ 10 Hz.</description>
+      <field type="uint64_t" name="time_usec"    units="us"/>
+      <field type="uint32_t" name="solve_count"/>
+      <field type="uint32_t" name="fail_count"/>
+      <field type="uint32_t" name="nan_skip_count"/>
+      <field type="uint32_t" name="solve_us"     units="us"/>
+      <field type="uint16_t" name="sqp_iter"/>
+      <field type="uint16_t" name="status" enum="M130_SOLVER_STATUS"/>
+      <field type="float"    name="cost_total"/>
+      <field type="float"    name="cost_stage"/>
+      <field type="float"    name="cost_terminal"/>
+      <field type="float"    name="constraint_violation"/>
+      <field type="float"    name="delta_roll_cmd"  units="deg"/>
+      <field type="float"    name="delta_pitch_cmd" units="deg"/>
+      <field type="float"    name="delta_yaw_cmd"   units="deg"/>
+      <field type="float"    name="pitch_accel_cmd" units="rad/s/s"/>
+      <field type="float"    name="yaw_accel_cmd"   units="rad/s/s"/>
+    </message>
+
+    <message id="42004" name="M130_FIN_STATE">
+      <description>Fin actuator state @ 20 Hz.</description>
+      <field type="uint64_t" name="time_usec"  units="us"/>
+      <field type="float"    name="fin1_deg"   units="deg"/>
+      <field type="float"    name="fin2_deg"   units="deg"/>
+      <field type="float"    name="fin3_deg"   units="deg"/>
+      <field type="float"    name="fin4_deg"   units="deg"/>
+      <field type="uint8_t"  name="servo_online_mask"/>
+      <field type="uint32_t" name="clamp_count"/>
+      <field type="uint32_t" name="offline_events"/>
+    </message>
+
+    <message id="42005" name="M130_EVENT_COUNTERS">
+      <description>Aggregated event counters @ 1 Hz.</description>
+      <field type="uint64_t" name="time_usec"  units="us"/>
+      <field type="uint32_t" name="mpc_fail_count"/>
+      <field type="uint32_t" name="mpc_nan_skip_count"/>
+      <field type="uint32_t" name="mhe_fail_count"/>
+      <field type="uint32_t" name="fin_clamp_count"/>
+      <field type="uint32_t" name="xval_reset_count"/>
+      <field type="uint32_t" name="servo_offline_events"/>
+      <field type="uint32_t" name="link_loss_events"/>
+      <field type="uint32_t" name="envelope_violations"/>
+    </message>
+
+    <message id="42006" name="M130_SENSOR_HEALTH">
+      <description>Sensor subsystem health @ 1 Hz.</description>
+      <field type="uint64_t" name="time_usec"  units="us"/>
+      <field type="uint8_t"  name="imu_health"/>
+      <field type="uint8_t"  name="baro_health"/>
+      <field type="uint8_t"  name="mag_health"/>
+      <field type="uint8_t"  name="gps_fix_type"/>
+      <field type="uint8_t"  name="gps_satellites"/>
+      <field type="uint8_t"  name="gps_jamming_state"/>
+      <field type="float"    name="imu_temp_c"   units="degC"/>
+      <field type="float"    name="battery_v"    units="V"/>
+      <field type="float"    name="battery_a"    units="A"/>
+      <field type="float"    name="battery_pct"  units="ratio"/>
+    </message>
+
+    <message id="42007" name="M130_COMMAND_ACK_M130">
+      <description>Custom ACK for M130 commands (id 42100+).</description>
+      <field type="uint32_t" name="command_id">mavlink msg id being acked</field>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint8_t"  name="result" enum="M130_CMD_ACK_RESULT"/>
+      <field type="uint8_t"  name="reason_code"/>
+      <field type="uint16_t" name="progress_pct"/>
+    </message>
+
+    <!-- ================================================================= -->
+    <!-- Outbound (GCS -> vehicle)                                           -->
+    <!-- ================================================================= -->
+
+    <message id="42100" name="M130_COMMAND_ARM">
+      <description>Arm the vehicle. Auth: Operator+.</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="nonce"/>
+      <field type="uint8_t"  name="auth_token[32]"/>
+    </message>
+
+    <message id="42101" name="M130_COMMAND_DISARM">
+      <description>Disarm. Auth: Operator+.</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="nonce"/>
+      <field type="uint8_t"  name="auth_token[32]"/>
+    </message>
+
+    <message id="42102" name="M130_COMMAND_HOLD">
+      <description>Hold current phase. Auth: Safety Officer+.</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="nonce"/>
+      <field type="uint8_t"  name="auth_token[32]"/>
+    </message>
+
+    <message id="42103" name="M130_COMMAND_ABORT">
+      <description>Graceful mission abort. Auth: Safety Officer+.</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="nonce"/>
+      <field type="uint8_t"  name="reason_code"/>
+      <field type="uint8_t"  name="auth_token[32]"/>
+    </message>
+
+    <message id="42104" name="M130_COMMAND_FTS">
+      <description>Flight Termination. Auth: RSO AND Safety Officer (dual-auth).</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="nonce"/>
+      <field type="uint64_t" name="timestamp_usec"/>
+      <field type="uint8_t"  name="command_type">0=full FTS, 1=engine cutoff only</field>
+      <field type="uint8_t"  name="reason_code" enum="M130_FTS_REASON"/>
+      <field type="uint8_t"  name="auth_token_rso[32]"/>
+      <field type="uint8_t"  name="auth_token_safety[32]"/>
+    </message>
+
+    <message id="42105" name="M130_COMMAND_TUNE">
+      <description>In-flight tune MPC/MHE parameters (bounded). Auth: Flight Director+.</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="nonce"/>
+      <field type="uint16_t" name="param_id"/>
+      <field type="float"    name="new_value"/>
+      <field type="uint8_t"  name="auth_token[32]"/>
+    </message>
+
+    <message id="42106" name="M130_COMMAND_MODE_SWITCH">
+      <description>Switch flight mode. Auth: Operator+.</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="nonce"/>
+      <field type="uint16_t" name="new_mode"/>
+      <field type="uint8_t"  name="auth_token[32]"/>
+    </message>
+
+    <message id="42107" name="M130_COMMAND_CHECKLIST_SIGN">
+      <description>Sign off a pre-launch checklist item. Auth: Operator+.</description>
+      <field type="uint32_t" name="flight_id"/>
+      <field type="uint32_t" name="item_id"/>
+      <field type="uint8_t"  name="result">0=NO-GO, 1=GO, 2=HOLD</field>
+      <field type="uint8_t"  name="auth_token[32]"/>
+    </message>
+  </messages>
+</mavlink>
