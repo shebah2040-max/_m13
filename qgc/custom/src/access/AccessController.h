@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CertPolicy.h"
+#include "GssAuthenticator.h"
 #include "LdapAuthenticator.h"
 #include "SessionManager.h"
 #include "UserManager.h"
@@ -78,10 +79,19 @@ public:
     /// owned by the controller; pass `nullptr` to clear.
     void setChannelSecurity(std::shared_ptr<access::IChannelSecurity> channel);
 
+    /// Attach a GSSAPI / Kerberos authenticator. Pass `nullptr` to clear.
+    /// The authenticator is appended to the authenticator chain and will
+    /// be consulted whenever an AuthContext carries a non-empty
+    /// gss_token.
+    void setGssProvider(std::shared_ptr<access::IGssProvider> provider,
+                        access::GssPolicy policy);
+
     /// Returns true when an LDAP provider has been registered.
     bool hasLdapProvider()    const noexcept { return _ldap_provider != nullptr; }
     /// Returns true when a channel security policy has been installed.
     bool hasChannelSecurity() const noexcept { return _channel_security != nullptr; }
+    /// Returns true when a GSSAPI authenticator is available.
+    bool hasGssProvider()     const noexcept { return _gss_provider != nullptr; }
 
 public slots:
     /// Attempt password login. If the user requires TOTP, leaves the
@@ -125,6 +135,7 @@ private:
 
     std::shared_ptr<access::LdapAuthenticator>  _ldap_provider;
     std::shared_ptr<access::IChannelSecurity>   _channel_security;
+    std::shared_ptr<access::GssAuthenticator>   _gss_provider;
 
     std::string   _pending_totp_user;
     std::string   _active_session;

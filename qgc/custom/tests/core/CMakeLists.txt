@@ -39,6 +39,9 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/access/Pbkdf2.cc
     ${M130_CUSTOM_DIR}/src/access/Blake2b.cc
     ${M130_CUSTOM_DIR}/src/access/Argon2.cc
+    ${M130_CUSTOM_DIR}/src/access/Ber.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapMessage.cc
+    ${M130_CUSTOM_DIR}/src/access/GssAuthenticator.cc
     ${M130_CUSTOM_DIR}/src/access/LdapDn.cc
     ${M130_CUSTOM_DIR}/src/access/LdapFilter.cc
     ${M130_CUSTOM_DIR}/src/access/LdapAuthenticator.cc
@@ -122,3 +125,6 @@ m130_add_test(LdapDnTest)
 m130_add_test(LdapFilterTest)
 m130_add_test(LdapAuthenticatorTest)
 m130_add_test(CertPolicyTest)
+m130_add_test(BerTest)
+m130_add_test(LdapMessageTest)
+m130_add_test(GssAuthenticatorTest)

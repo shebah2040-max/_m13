@@ -17,6 +17,7 @@ struct AuthContext {
     std::string password;
     std::string totp_code;        ///< empty if not provided
     std::string mtls_subject_cn;  ///< populated by the channel layer, empty otherwise
+    std::string gss_token;        ///< SPNEGO/Kerberos negotiate payload, empty otherwise
 };
 
 enum class AuthStatus : std::uint8_t {

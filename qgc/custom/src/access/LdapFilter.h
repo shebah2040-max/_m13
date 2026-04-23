@@ -42,6 +42,10 @@ public:
     bool matches(const LdapEntry& e) const;
 
     Op op() const noexcept { return _op; }
+    std::string_view attribute() const noexcept { return _attr; }
+    std::string_view value()     const noexcept { return _value; }
+    const std::vector<std::shared_ptr<LdapFilter>>& children() const noexcept
+    { return _children; }
 
 private:
     Op _op = Op::And;
