@@ -65,6 +65,13 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/analysis/Spectrum.cc
     ${M130_CUSTOM_DIR}/src/analysis/MheInnovationMonitor.cc
     ${M130_CUSTOM_DIR}/src/tuning/MpcTuningModel.cc
+    ${M130_CUSTOM_DIR}/src/geo/Wgs84.cc
+    ${M130_CUSTOM_DIR}/src/geo/Geodesic.cc
+    ${M130_CUSTOM_DIR}/src/nav/TrajectoryModel.cc
+    ${M130_CUSTOM_DIR}/src/nav/MapCorridor.cc
+    ${M130_CUSTOM_DIR}/src/nav/CorridorMonitor.cc
+    ${M130_CUSTOM_DIR}/src/weather/WeatherOverlay.cc
+    ${M130_CUSTOM_DIR}/src/weather/NotamModel.cc
 )
 target_include_directories(m130_core PUBLIC ${M130_CUSTOM_DIR}/src)
 
@@ -128,3 +135,10 @@ m130_add_test(CertPolicyTest)
 m130_add_test(BerTest)
 m130_add_test(LdapMessageTest)
 m130_add_test(GssAuthenticatorTest)
+m130_add_test(Wgs84Test)
+m130_add_test(GeodesicTest)
+m130_add_test(TrajectoryModelTest)
+m130_add_test(MapCorridorTest)
+m130_add_test(CorridorMonitorTest)
+m130_add_test(WeatherOverlayTest)
+m130_add_test(NotamModelTest)

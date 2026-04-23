@@ -36,5 +36,8 @@
         <file alias="widgets/AirspeedTape.qml">src/ui/widgets/AirspeedTape.qml</file>
         <file alias="views/login/LoginScreen.qml">src/views/login/LoginScreen.qml</file>
         <file alias="views/login/StepUpDialog.qml">src/views/login/StepUpDialog.qml</file>
+        <file alias="views/trajectory/Trajectory3DView.qml">src/views/trajectory/Trajectory3DView.qml</file>
+        <file alias="views/map/MapCorridorOverlay.qml">src/views/map/MapCorridorOverlay.qml</file>
+        <file alias="views/weather/WeatherBadge.qml">src/views/weather/WeatherBadge.qml</file>
     </qresource>
 </RCC>
