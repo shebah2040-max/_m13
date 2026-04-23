@@ -40,6 +40,10 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/protocol/M130Dialect.cc
     ${M130_CUSTOM_DIR}/src/protocol/generated/M130Messages.generated.cc
     ${M130_CUSTOM_DIR}/src/protocol/generated/M130DialectTable.generated.cc
+    ${M130_CUSTOM_DIR}/src/views/ChecklistModel.cc
+    ${M130_CUSTOM_DIR}/src/views/CountdownClock.cc
+    ${M130_CUSTOM_DIR}/src/views/IipPredictor.cc
+    ${M130_CUSTOM_DIR}/src/views/ReplayController.cc
 )
 target_include_directories(m130_core PUBLIC ${M130_CUSTOM_DIR}/src)
 
@@ -80,3 +84,7 @@ m130_add_test(HmacSha256Test)
 m130_add_test(FdrReaderTest)
 m130_add_test(ReplayEngineTest)
 m130_add_test(FdrExporterTest)
+m130_add_test(ChecklistModelTest)
+m130_add_test(CountdownClockTest)
+m130_add_test(IipPredictorTest)
+m130_add_test(ReplayControllerTest)

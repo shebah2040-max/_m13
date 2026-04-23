@@ -84,6 +84,15 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/ReplayEngine.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/AuditLogger.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/AuditLogger.h
+    # View-models (pure C++ — also compiled into standalone m130_core)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ChecklistModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ChecklistModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/CountdownClock.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/CountdownClock.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/IipPredictor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/IipPredictor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -102,6 +111,7 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views
     CACHE INTERNAL "" FORCE
 )
 

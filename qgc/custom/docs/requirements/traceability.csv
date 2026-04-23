@@ -17,8 +17,8 @@ REQ-M130-GCS-SAFE-003,Safety,Independent watchdogs,design/SystemArchitecture.md#
 REQ-M130-GCS-SAFE-004,Safety,Master caution/warning/emergency,design/SystemArchitecture.md#ui,src/safety/SafetyKernel.cc,tests/core/SafetyAggregatorTest.cc,Test,Integrated
 REQ-M130-GCS-SAFE-005,Safety,ARINC 661 alert levels,design/SystemArchitecture.md#safety,src/safety/AlertManager.cc,tests/core/AlertManagerTest.cc,Test,Foundation
 REQ-M130-GCS-SAFE-006,Safety,Alert acknowledgment audit,design/SystemArchitecture.md#safety,src/safety/AlertManager.cc,tests/core/AlertManagerTest.cc,Test,Foundation
-REQ-M130-GCS-SAFE-007,Safety,IIP computation,design/SystemArchitecture.md#safety,src/safety/,tests/core/,Analysis,Pending
-REQ-M130-GCS-SAFE-008,Safety,Flight corridor visualization,design/SystemArchitecture.md#ui,src/views/rangesafety/,tests/qml/,Demonstration,Pending
+REQ-M130-GCS-SAFE-007,Safety,IIP computation,design/ViewsArchitecture.md,src/views/IipPredictor.cc,tests/core/IipPredictorTest.cc,Test,Integrated
+REQ-M130-GCS-SAFE-008,Safety,Flight corridor visualization,design/ViewsArchitecture.md,src/views/rangesafety/RangeSafetyConsole.qml,tests/qml/,Demonstration,Foundation
 REQ-M130-GCS-SAFE-009,Safety,FTS dual authorization,design/SystemArchitecture.md#safety,src/safety/FlightTerminationService.cc,tests/core/FlightTerminationServiceTest.cc,Test,Foundation
 REQ-M130-GCS-SAFE-010,Safety,FTS reject non-RSO,design/SystemArchitecture.md#safety,src/safety/FlightTerminationService.cc,tests/core/FlightTerminationServiceTest.cc,Test,Foundation
 REQ-M130-GCS-CMD-001,Command,RBAC for commands,design/SystemArchitecture.md#access,src/safety/CommandAuthorization.cc,tests/core/CommandAuthorizationTest.cc,Test,Foundation
@@ -33,7 +33,7 @@ REQ-M130-GCS-LOG-004,Logging,Append-only audit,design/SystemArchitecture.md#logg
 REQ-M130-GCS-LOG-005,Logging,Post-flight PDF,design/FlightDataRecorder.md,tools/post-flight-report.py,tests/integration/,Demonstration,Integrated
 REQ-M130-GCS-LOG-006,Logging,UI screenshots,design/SystemArchitecture.md#logging,src/logging/,tests/integration/,Demonstration,Pending
 REQ-M130-GCS-LOG-007,Logging,Replay 0.1x-100x,design/FlightDataRecorder.md,src/logging/ReplayEngine.cc,tests/core/ReplayEngineTest.cc,Test,Integrated
-REQ-M130-GCS-UI-001,UI,Multiple consoles,design/SystemArchitecture.md#ui,src/views/,tests/qml/,Demonstration,Pending
+REQ-M130-GCS-UI-001,UI,Multiple consoles,design/ViewsArchitecture.md,src/views/ConsoleSwitcher.qml,tests/qml/,Demonstration,Foundation
 REQ-M130-GCS-UI-002,UI,DO-178C/MIL color scheme,design/SystemArchitecture.md#ui,src/ui/theme/,tests/qml/,Inspection,Existing
 REQ-M130-GCS-UI-003,UI,Colorblind modes,design/SystemArchitecture.md#ui,src/ui/theme/,tests/qml/,Demonstration,Foundation
 REQ-M130-GCS-UI-004,UI,ScreenTools sizing,design/SystemArchitecture.md#ui,src/views/,tests/qml/,Inspection,Existing
