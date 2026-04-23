@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CertPolicy.h"
+#include "LdapAuthenticator.h"
 #include "SessionManager.h"
 #include "UserManager.h"
 
@@ -59,6 +61,28 @@ public:
     /// Safe to call multiple times; no-ops if users already exist.
     Q_INVOKABLE void installDefaultUsers();
 
+    /// Switch the password hasher to Argon2id (RFC 9106) for new passwords.
+    /// Uses OWASP 2024 defaults (m=19 MiB, t=2, p=1). Existing stored
+    /// hashes produced by PBKDF2 remain valid; a user is re-hashed on
+    /// next `setPassword`.
+    Q_INVOKABLE void enableArgon2id();
+
+    /// Attach an LDAP authenticator to the chain. Ownership of the
+    /// transport is shared. When `transport` is null the LDAP provider is
+    /// removed. Not exposed via Q_INVOKABLE because the configuration is
+    /// not JSON-friendly.
+    void setLdapProvider(std::shared_ptr<access::ILdapTransport> transport,
+                         access::LdapConfig cfg);
+
+    /// Attach an mTLS channel security policy. The returned pointer is
+    /// owned by the controller; pass `nullptr` to clear.
+    void setChannelSecurity(std::shared_ptr<access::IChannelSecurity> channel);
+
+    /// Returns true when an LDAP provider has been registered.
+    bool hasLdapProvider()    const noexcept { return _ldap_provider != nullptr; }
+    /// Returns true when a channel security policy has been installed.
+    bool hasChannelSecurity() const noexcept { return _channel_security != nullptr; }
+
 public slots:
     /// Attempt password login. If the user requires TOTP, leaves the
     /// session in a not-yet-created state and returns false with
@@ -98,6 +122,9 @@ private:
     access::UserManager          _users;
     access::SessionManager       _sessions;
     AuditTailModel*              _audit_model;
+
+    std::shared_ptr<access::LdapAuthenticator>  _ldap_provider;
+    std::shared_ptr<access::IChannelSecurity>   _channel_security;
 
     std::string   _pending_totp_user;
     std::string   _active_session;

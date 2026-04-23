@@ -160,6 +160,39 @@ void AccessController::installDefaultUsers()
     seed("admin",       "Administrator",   Role::Admin);
 }
 
+void AccessController::enableArgon2id()
+{
+    _users.setHasher(access::argon2idHasher());
+    _appendAudit(QStringLiteral("system"),
+                 QStringLiteral("config.hasher"),
+                 QStringLiteral("argon2id"));
+}
+
+void AccessController::setLdapProvider(std::shared_ptr<access::ILdapTransport> transport,
+                                       access::LdapConfig cfg)
+{
+    if (!transport) {
+        _ldap_provider.reset();
+        _appendAudit(QStringLiteral("system"),
+                     QStringLiteral("config.ldap"),
+                     QStringLiteral("disabled"));
+        return;
+    }
+    _ldap_provider = std::make_shared<access::LdapAuthenticator>(std::move(transport),
+                                                                 std::move(cfg));
+    _appendAudit(QStringLiteral("system"),
+                 QStringLiteral("config.ldap"),
+                 QStringLiteral("enabled"));
+}
+
+void AccessController::setChannelSecurity(std::shared_ptr<access::IChannelSecurity> channel)
+{
+    _channel_security = std::move(channel);
+    _appendAudit(QStringLiteral("system"),
+                 QStringLiteral("config.mtls"),
+                 _channel_security ? QStringLiteral("installed") : QStringLiteral("cleared"));
+}
+
 bool AccessController::login(const QString& user, const QString& password)
 {
     const std::string uid = user.toStdString();
