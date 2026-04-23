@@ -50,8 +50,22 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/AlertListModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.h
-    # Access layer (used by CommandAuthorization)
+    # Access layer (Pillar 6: argon2id-ready hasher, TOTP, authenticator chain)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Role.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Base32.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Base32.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Pbkdf2.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Pbkdf2.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/SessionManager.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/SessionManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Totp.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Totp.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/UserManager.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/UserManager.h
     # Protocol layer (pure-C++) + generated dialect
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/ProtocolVersion.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/ProtocolVersion.h

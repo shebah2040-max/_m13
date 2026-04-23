@@ -84,7 +84,7 @@ CI. Subsequent PRs flesh out each of the ten pillars:
 | 3. Safety Kernel Integration | wire Safety Kernel into `CustomPlugin` (✓ delivered; see `docs/design/SafetyKernel-Integration.md`) |
 | 4. Flight Data Recorder | binary raw + JSONL events + decoded samples + HMAC-SHA256 chain + replay engine + post-flight report (✓ delivered; see `docs/design/FlightDataRecorder.md`) |
 | 5. Views Completion | Operations + PreLaunch + RangeSafety + Replay + Tuning + Analysis + Admin consoles + shared HUD widgets + view-models (✓ delivered; see `docs/design/ViewsArchitecture.md`) |
-| 6. Access Integration | local + LDAP auth, mTLS, YubiKey, live audit viewer |
+| 6. Access Integration | PBKDF2 (argon2id-ready) + TOTP + timed lockout + idle/absolute session TTL + step-up reauth + authenticator chain (✓ core delivered; see `docs/design/AccessControl.md`). LDAP/mTLS/audit viewer in 6b. |
 | 7. Tuning & Analysis | MPC tuning UI, plotting, FFT, MHE innovation |
 | 8. Admin + Colourblind | admin console, theme engine, i18n completeness |
 | 9. System Integration | weather, NOTAMs, MQTT relay, range trackers |
