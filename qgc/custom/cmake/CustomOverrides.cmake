@@ -15,8 +15,13 @@ set(QGC_DISABLE_APM_PLUGIN_FACTORY  ON CACHE BOOL "Disable APM Plugin Factory" F
 # نستخدم مصنع firmware مخصص
 set(QGC_DISABLE_PX4_PLUGIN_FACTORY ON CACHE BOOL "Disable PX4 Plugin Factory" FORCE)
 
-# Linux AppImage Icon
-if(EXISTS "${CMAKE_SOURCE_DIR}/custom/res/icons/rocket_icon.svg")
+# Linux AppImage Icon — the canonical location is custom/res/Images/.
+# custom/res/icons/ is kept as a symlink-friendly alias so both paths work.
+if(EXISTS "${CMAKE_SOURCE_DIR}/custom/res/Images/rocket_icon.svg")
+    set(QGC_APPIMAGE_ICON_SCALABLE_PATH
+        "${CMAKE_SOURCE_DIR}/custom/res/Images/rocket_icon.svg"
+        CACHE FILEPATH "AppImage Icon SVG Path" FORCE)
+elseif(EXISTS "${CMAKE_SOURCE_DIR}/custom/res/icons/rocket_icon.svg")
     set(QGC_APPIMAGE_ICON_SCALABLE_PATH
         "${CMAKE_SOURCE_DIR}/custom/res/icons/rocket_icon.svg"
         CACHE FILEPATH "AppImage Icon SVG Path" FORCE)

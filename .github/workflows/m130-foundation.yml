@@ -1,0 +1,66 @@
+name: M130 Foundation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'qgc/custom/**'
+      - '.github/workflows/m130-foundation.yml'
+  pull_request:
+    paths:
+      - 'qgc/custom/**'
+      - '.github/workflows/m130-foundation.yml'
+
+# This workflow builds and tests only the pure-C++ M130 core library.
+# It runs in parallel to the (heavier) main QGC Qt build matrix so reviewers
+# see early feedback on the Foundation code without waiting for Qt to boot.
+
+permissions:
+  contents: read
+
+jobs:
+  core-tests:
+    name: m130_core tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ lcov
+
+      - name: Configure
+        working-directory: qgc/custom/tests/core
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        working-directory: qgc/custom/tests/core
+        run: cmake --build build --parallel
+
+      - name: Test
+        working-directory: qgc/custom/tests/core/build
+        run: ctest --output-on-failure --label-regex "M130" --parallel $(nproc)
+
+  governance:
+    name: docs + dialect governance
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate traceability matrix
+        run: python3 qgc/custom/tools/validate-traceability.py
+
+      - name: Validate m130 MAVLink dialect
+        run: python3 qgc/custom/tools/validate-dialect.py
