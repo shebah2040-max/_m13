@@ -1,0 +1,21 @@
+<RCC>
+    <!-- صور مخصصة للصاروخ -->
+    <qresource prefix="/custom/img">
+        <file alias="rocket_icon.svg">res/Images/rocket_icon.svg</file>
+    </qresource>
+
+    <!-- أيقونة المركبة في الخريطة -->
+    <qresource prefix="/Custom/qmlimages">
+        <file alias="PaperPlane.svg">res/Images/rocket_icon.svg</file>
+    </qresource>
+
+    <!-- تجاوز ملفات QML الأساسية -->
+    <qresource prefix="/Custom/qml">
+        <file alias="QGroundControl/FlyView/FlyViewCustomLayer.qml">src/FlyViewCustomLayer.qml</file>
+    </qresource>
+
+    <!-- موارد الهوية البصرية -->
+    <qresource prefix="/Custom/res">
+        <file alias="QGCLogoFull.svg">res/Images/rocket_icon.svg</file>
+    </qresource>
+</RCC>
