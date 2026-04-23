@@ -49,6 +49,12 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/views/CountdownClock.cc
     ${M130_CUSTOM_DIR}/src/views/IipPredictor.cc
     ${M130_CUSTOM_DIR}/src/views/ReplayController.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Timeseries.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Window.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Fft.cc
+    ${M130_CUSTOM_DIR}/src/analysis/Spectrum.cc
+    ${M130_CUSTOM_DIR}/src/analysis/MheInnovationMonitor.cc
+    ${M130_CUSTOM_DIR}/src/tuning/MpcTuningModel.cc
 )
 target_include_directories(m130_core PUBLIC ${M130_CUSTOM_DIR}/src)
 
@@ -97,3 +103,9 @@ m130_add_test(AuthenticatorChainTest)
 m130_add_test(Base32Test)
 m130_add_test(Pbkdf2Test)
 m130_add_test(TotpTest)
+m130_add_test(RingBufferTest)
+m130_add_test(TimeseriesTest)
+m130_add_test(FftTest)
+m130_add_test(SpectrumTest)
+m130_add_test(MheInnovationMonitorTest)
+m130_add_test(MpcTuningModelTest)

@@ -107,6 +107,22 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views/IipPredictor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.h
+    # Analysis (pure C++ — FFT, window, spectrum, timeseries, MHE innovation)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/RingBuffer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Timeseries.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Timeseries.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Window.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Window.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Fft.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Fft.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Spectrum.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Spectrum.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/MheInnovationMonitor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/MheInnovationMonitor.h
+    # Tuning (pure C++ — bounded MPC weight model + snapshot/rollback)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningParameter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/MpcTuningModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/MpcTuningModel.h
     CACHE INTERNAL "" FORCE
 )
 

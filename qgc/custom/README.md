@@ -85,7 +85,7 @@ CI. Subsequent PRs flesh out each of the ten pillars:
 | 4. Flight Data Recorder | binary raw + JSONL events + decoded samples + HMAC-SHA256 chain + replay engine + post-flight report (✓ delivered; see `docs/design/FlightDataRecorder.md`) |
 | 5. Views Completion | Operations + PreLaunch + RangeSafety + Replay + Tuning + Analysis + Admin consoles + shared HUD widgets + view-models (✓ delivered; see `docs/design/ViewsArchitecture.md`) |
 | 6. Access Integration | PBKDF2 (argon2id-ready) + TOTP + timed lockout + idle/absolute session TTL + step-up reauth + authenticator chain (✓ core delivered; see `docs/design/AccessControl.md`). LDAP/mTLS/audit viewer in 6b. |
-| 7. Tuning & Analysis | MPC tuning UI, plotting, FFT, MHE innovation |
+| 7. Tuning & Analysis | Bounded MPC weight model + safety-gated set + snapshots/rollback + FFT/windowed spectrum + MHE innovation monitor + Timeseries (✓ core delivered; see `docs/design/TuningAnalysis.md`). QtCharts + live wiring in 7b. |
 | 8. Admin + Colourblind | admin console, theme engine, i18n completeness |
 | 9. System Integration | weather, NOTAMs, MQTT relay, range trackers |
 | 10. Certification | ISO 9001 QMS, AS9100D delta, DO-178C evidence, audits |
