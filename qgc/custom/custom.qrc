@@ -18,4 +18,21 @@
     <qresource prefix="/Custom/res">
         <file alias="QGCLogoFull.svg">res/Images/rocket_icon.svg</file>
     </qresource>
+
+    <!-- Pillar 5: M130 consoles + shared widgets. Mounted under a dedicated
+         prefix so ConsoleSwitcher / Loader can resolve them via
+         "qrc:/qml/views/<group>/<File>.qml". -->
+    <qresource prefix="/qml">
+        <file alias="ConsoleSwitcher.qml">src/views/ConsoleSwitcher.qml</file>
+        <file alias="views/operations/OperationsConsole.qml">src/views/operations/OperationsConsole.qml</file>
+        <file alias="views/prelaunch/PreLaunchConsole.qml">src/views/prelaunch/PreLaunchConsole.qml</file>
+        <file alias="views/rangesafety/RangeSafetyConsole.qml">src/views/rangesafety/RangeSafetyConsole.qml</file>
+        <file alias="views/replay/ReplayConsole.qml">src/views/replay/ReplayConsole.qml</file>
+        <file alias="views/tuning/TuningConsole.qml">src/views/tuning/TuningConsole.qml</file>
+        <file alias="views/analysis/AnalysisConsole.qml">src/views/analysis/AnalysisConsole.qml</file>
+        <file alias="views/admin/AdminConsole.qml">src/views/admin/AdminConsole.qml</file>
+        <file alias="widgets/AdiIndicator.qml">src/ui/widgets/AdiIndicator.qml</file>
+        <file alias="widgets/AltitudeTape.qml">src/ui/widgets/AltitudeTape.qml</file>
+        <file alias="widgets/AirspeedTape.qml">src/ui/widgets/AirspeedTape.qml</file>
+    </qresource>
 </RCC>
