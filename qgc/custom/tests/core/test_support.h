@@ -35,12 +35,16 @@ inline void fail(const char* file, int line, const char* what)
         }                                                                          \
     } while (0)
 
+// Note: `#a` and `#b` are passed as runtime arguments to `%s`, never
+// concatenated into the format string itself. Stringified expressions may
+// contain `%` characters which would otherwise be interpreted as format
+// specifiers and trigger undefined behaviour.
 #define M130_REQUIRE_EQ(a, b)                                                      \
     do {                                                                           \
         auto _av = (a); auto _bv = (b);                                            \
         if (!(_av == _bv)) {                                                       \
-            std::fprintf(stderr, "FAIL %s:%d  REQUIRE_EQ(" #a ", " #b ")\n",       \
-                         __FILE__, __LINE__);                                      \
+            std::fprintf(stderr, "FAIL %s:%d  REQUIRE_EQ(%s, %s)\n",               \
+                         __FILE__, __LINE__, #a, #b);                              \
             ++::m130::testing::g_failures;                                         \
             return 1;                                                              \
         }                                                                          \
