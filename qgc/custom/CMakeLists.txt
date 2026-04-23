@@ -72,6 +72,16 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapFilter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/MtlsAuthenticator.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/MtlsAuthenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Ber.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Ber.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapMessage.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapMessage.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/GssAuthenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/GssAuthenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QtLdapTransport.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QtLdapTransport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QSslChannelAdapter.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/QSslChannelAdapter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Pbkdf2.cc

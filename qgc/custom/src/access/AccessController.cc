@@ -193,6 +193,23 @@ void AccessController::setChannelSecurity(std::shared_ptr<access::IChannelSecuri
                  _channel_security ? QStringLiteral("installed") : QStringLiteral("cleared"));
 }
 
+void AccessController::setGssProvider(std::shared_ptr<access::IGssProvider> provider,
+                                      access::GssPolicy policy)
+{
+    if (!provider) {
+        _gss_provider.reset();
+        _appendAudit(QStringLiteral("system"),
+                     QStringLiteral("config.gss"),
+                     QStringLiteral("disabled"));
+        return;
+    }
+    _gss_provider = std::make_shared<access::GssAuthenticator>(std::move(provider),
+                                                               std::move(policy));
+    _appendAudit(QStringLiteral("system"),
+                 QStringLiteral("config.gss"),
+                 QStringLiteral("enabled"));
+}
+
 bool AccessController::login(const QString& user, const QString& password)
 {
     const std::string uid = user.toStdString();
