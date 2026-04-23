@@ -52,6 +52,8 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.h
     # Access layer (Pillar 6: argon2id-ready hasher, TOTP, authenticator chain)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Role.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/AccessController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/AccessController.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Base32.cc
@@ -107,6 +109,9 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views/IipPredictor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views/ReplayController.h
+    # Phase B — Qt-bound facades for Pillar 5
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/MissionController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/views/MissionController.h
     # Analysis (pure C++ — FFT, window, spectrum, timeseries, MHE innovation)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/RingBuffer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Timeseries.cc
@@ -119,10 +124,16 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/Spectrum.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/MheInnovationMonitor.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/MheInnovationMonitor.h
+    # Phase B — Qt-bound facade for Pillar 7 analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/AnalysisController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis/AnalysisController.h
     # Tuning (pure C++ — bounded MPC weight model + snapshot/rollback)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningParameter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/MpcTuningModel.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/MpcTuningModel.h
+    # Phase B — Qt-bound facade for Pillar 7 tuning
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningController.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -141,6 +152,9 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated
     ${CMAKE_CURRENT_SOURCE_DIR}/src/logging
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views
     CACHE INTERNAL "" FORCE
 )
