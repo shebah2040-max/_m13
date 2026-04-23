@@ -1,0 +1,118 @@
+اوامر البناء والتفليش 
+
+
+cd ~/PX4-Autopilot
+
+rm -rf build/micoair_h743_default
+
+make micoair_h743_default
+make micoair_h743_default upload
+
+
+
+
+
+تشغيل SITL
+
+
+1.النافذة الاولى 
+
+cd /home/abas/CAN/px/PX4-Autopilot
+PX4_SYS_AUTOSTART=22000 ./build/px4_sitl_default/bin/px4
+
+
+التافذة الثانية 
+
+
+cd /home/abas/CAN/px/6DOF_v2_130
+python3 run_px4_hil.py
+
+
+
+تشغيل ال HITL
+
+
+
+cd /home/abas/CAN/px/PX4-Autopilot/6DOF_v2_130
+python3 run_px4_hitl.py
+
+
+
+
+python3 run_px4_hitl_android.py --no-reboot
+
+
+
+
+
+ هذه الأوامر المتاحة بعد تشغيل الدرايفر عبر NSH Console:
+
+
+# تشغيل الدرايفر
+xqpower_can start
+
+# === أوامر التحكم بالزوايا ===
+
+# تحريك سيرفو واحد لزاوية معينة (الفهرس 0-3)
+xqpower_can move 0 15      # سيرفو 0 -> 15°
+xqpower_can move 1 -20     # سيرفو 1 -> -20°
+xqpower_can move 2 0       # سيرفو 2 -> 0°
+
+# تحريك كل السيرفوهات لنفس الزاوية
+xqpower_can move_all 10    # الكل -> +10°
+xqpower_can move_all -25   # الكل -> -25°
+
+# تصفير كل السيرفوهات (0°)
+xqpower_can zero
+
+# حركة سلسة (sweep) من 0 إلى ±الزاوية والعودة
+xqpower_can sweep 25       # 0 -> +25 -> -25 -> 0 (حركة سلسة)
+
+# اختبار تلقائي
+xqpower_can test           # 0 -> +10 -> -10 -> 0
+
+# عرض الحالة (موقع، تيار، حرارة)
+xqpower_can status
+
+# إيقاف الدرايفر
+xqpower_can stop
+
+
+
+
+
+
+الأمر	الوصف
+xqpower_can start	تشغيل الدرايفر
+xqpower_can stop	إيقاف الدرايفر
+xqpower_can status	عرض حالة كل سيرفو (الموقع، التيار، الحرارة، Online/Offline)
+xqpower_can move <idx> <deg>	تحريك سيرفو واحد لزاوية محددة مع التثبيت (idx = 0-3)
+xqpower_can move_all <deg>	تحريك جميع السيرفوات لنفس الزاوية
+xqpower_can zero	تصفير جميع السيرفوات (0°) مع التثبيت
+xqpower_can test	اختبار تلقائي: 0° → +10° → -10° → 0° (ثانية لكل وضع)
+xqpower_can sweep <deg>	مسح سلس: 0 → +deg → -deg → 0 بخطوة 1° كل 30ms
+xqpower_can calibrate	تعيين الموقع الحالي كنقطة صفر جديدة (يحفظ في Flash)
+xqpower_can release	إلغاء التحكم اليدوي والعودة للتحكم الطبيعي (من RocketGNC)
+xqpower_can send_test <idx> <deg>	إرسال إطار CAN واحد مع انتظار الرد (للتشخيص)
+أمثلة عملية:
+
+
+
+adb tcpip 5555
+
+
+adb connect 192.168.2.138:5555     ip:phon
+
+
+adb devices
+
+
+adb forward tcp:5760 tcp:5760
+
+
+
+من الجلسة السابقة، هذه أوامر ربط الإيثرنت:
+
+1. تعيين IP للابتوب على منفذ الإيثرنت
+
+sudo ip addr add 192.168.2.1/24 dev enp129s0

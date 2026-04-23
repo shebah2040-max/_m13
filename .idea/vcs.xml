@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="VcsDirectoryMappings">
-    <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/m13/AndroidApp/app/src/main/cpp/PX4-Autopilot" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/m13/AndroidApp/app/src/main/cpp/libusb_src" vcs="Git" />
-  </component>
-</project>
