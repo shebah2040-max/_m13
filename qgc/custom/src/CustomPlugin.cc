@@ -12,10 +12,17 @@
 #include "protocol/generated/M130DialectTable.generated.h"
 #include "protocol/generated/M130Messages.generated.h"
 #include "telemetry/M130GncStateFactGroup.h"
+#include "logging/FlightDataRecorder.h"
 
+#include <chrono>
+#include <cstdlib>
 #include <cstring>
+#include <ctime>
+#include <filesystem>
+#include <sstream>
 
 #include <QtCore/QApplicationStatic>
+#include <QtCore/QByteArray>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 
@@ -56,10 +63,64 @@ CustomPlugin::CustomPlugin(QObject *parent)
     qCDebug(CustomLog) << "M130 GCS Plugin initializing";
     _showAdvancedUI = false;
     _safetyKernel->installDefaults();
+    _initFlightDataRecorder();
     (void) connect(this, &QGCCorePlugin::showAdvancedUIChanged, this, &CustomPlugin::_advancedChanged);
 }
 
-CustomPlugin::~CustomPlugin() = default;
+CustomPlugin::~CustomPlugin()
+{
+    if (_fdr) _fdr->close();
+}
+
+// Open the Flight Data Recorder under the directory pointed to by the env var
+// M130_FDR_DIR. The directory is created if it does not exist. Each session
+// lands under its own base path: `<dir>/m130_<YYYYmmdd_HHMMSS>`. When the env
+// var is unset, no recorder is created — pure observation-only mode.
+void CustomPlugin::_initFlightDataRecorder()
+{
+    const char *dir_env = std::getenv("M130_FDR_DIR");
+    if (!dir_env || *dir_env == '\0') return;
+
+    std::error_code ec;
+    std::filesystem::create_directories(dir_env, ec);
+    if (ec) {
+        qCWarning(CustomLog) << "M130_FDR_DIR cannot be created:" << QString::fromStdString(ec.message());
+        return;
+    }
+
+    const auto now = std::chrono::system_clock::now();
+    const auto tt  = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf{};
+#ifdef _WIN32
+    gmtime_s(&tm_buf, &tt);
+#else
+    gmtime_r(&tt, &tm_buf);
+#endif
+    char stamp[32];
+    std::strftime(stamp, sizeof(stamp), "%Y%m%d_%H%M%S", &tm_buf);
+
+    const std::string base = (std::filesystem::path(dir_env) /
+                              (std::string("m130_") + stamp)).string();
+    _fdr = std::make_unique<m130::logging::FlightDataRecorder>();
+    if (!_fdr->open(base)) {
+        qCWarning(CustomLog) << "FlightDataRecorder failed to open" << QString::fromStdString(base);
+        _fdr.reset();
+    } else {
+        qCInfo(CustomLog) << "FlightDataRecorder active at" << QString::fromStdString(base);
+    }
+}
+
+void CustomPlugin::_recordRawFrame(const mavlink_message_t &message, std::uint8_t channel)
+{
+    if (!_fdr) return;
+    m130::logging::RawFrame frame;
+    frame.channel = channel;
+    frame.msg_id  = static_cast<std::uint16_t>(message.msgid);
+    frame.payload.assign(
+        reinterpret_cast<const std::uint8_t*>(_MAV_PAYLOAD(&message)),
+        reinterpret_cast<const std::uint8_t*>(_MAV_PAYLOAD(&message)) + message.len);
+    _fdr->appendRaw(frame);
+}
 
 QGCCorePlugin *CustomPlugin::instance()
 {
@@ -91,6 +152,16 @@ bool CustomPlugin::mavlinkMessage(Vehicle *vehicle, LinkInterface * /*link*/, co
         if (message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
             _safetyKernel->feed(QStringLiteral("heartbeat"));
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Pillar 4 — Flight Data Recorder capture for any M130 dialect id and
+    // for HEARTBEAT so the raw track has full context. The recorder is a
+    // no-op if not enabled.
+    // ------------------------------------------------------------------
+    if (_fdr && (m130::protocol::isM130Id(message.msgid) ||
+                 message.msgid == MAVLINK_MSG_ID_HEARTBEAT)) {
+        _recordRawFrame(message, /*channel=*/0);
     }
 
     // ------------------------------------------------------------------
@@ -178,6 +249,32 @@ void CustomPlugin::_dispatchM130Message(Vehicle *vehicle, const mavlink_message_
             _safetyKernel->feed(QStringLiteral("gnc_state"));
             _safetyKernel->evaluateSample(QStringLiteral("phi"), gnc.phi);
             _safetyKernel->evaluateSample(QStringLiteral("alpha_est"), gnc.alpha_est);
+        }
+        // Pillar 4 — structured track: persist a small subset of decoded
+        // GNC fields so post-flight analysis does not require reparsing the
+        // raw payload. Full schema lives in docs/design/FlightDataRecorder.md.
+        if (_fdr) {
+            m130::logging::StructuredSample s;
+            s.timestamp_us = gnc.time_usec;
+            s.msg_id       = M130GncState::kMsgId;
+            s.msg_name     = M130GncState::kName;
+            auto push = [&s](const char *k, double v) {
+                std::ostringstream os; os.precision(9); os << v;
+                s.numeric.emplace_back(k, os.str());
+            };
+            push("stage",          gnc.stage);
+            push("launched",       gnc.launched);
+            push("mode",           gnc.mode);
+            push("q_dyn",          gnc.q_dyn);
+            push("altitude",       gnc.altitude);
+            push("airspeed",       gnc.airspeed);
+            push("phi",            gnc.phi);
+            push("theta",          gnc.theta);
+            push("psi",            gnc.psi);
+            push("alpha_est",      gnc.alpha_est);
+            push("pos_downrange",  gnc.pos_downrange);
+            push("pos_crossrange", gnc.pos_crossrange);
+            _fdr->appendStructured(s);
         }
         break;
     }

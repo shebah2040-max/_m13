@@ -2,7 +2,7 @@ RequirementID,Category,Title,DesignRef,CodeRef,TestRef,VerificationMethod,Status
 REQ-M130-GCS-PROT-001,Protocol,MAVLink 2 signing,design/SystemArchitecture.md#protocol,src/protocol/,tests/core/ProtocolVersionTest.cc,Test,Pending
 REQ-M130-GCS-PROT-002,Protocol,Use m130.xml dialect,design/SystemArchitecture.md#protocol,src/protocol/generated/,tests/core/M130GeneratedCodecTest.cc,Test,Integrated
 REQ-M130-GCS-PROT-003,Protocol,Reject mismatched protocol_version,design/SystemArchitecture.md#protocol,src/protocol/ProtocolVersion.cc,tests/core/ProtocolVersionTest.cc,Test,Foundation
-REQ-M130-GCS-PROT-004,Protocol,Log every message to FDR,design/SystemArchitecture.md#logging,src/logging/FlightDataRecorder.cc,tests/core/FlightDataRecorderTest.cc,Test,Pending
+REQ-M130-GCS-PROT-004,Protocol,Log every message to FDR,design/FlightDataRecorder.md,src/logging/FlightDataRecorder.cc,tests/core/FdrReaderTest.cc,Test,Integrated
 REQ-M130-GCS-PROT-005,Protocol,Heartbeat loss >1s Caution,design/SystemArchitecture.md#safety,src/safety/Watchdog.cc,tests/core/WatchdogTest.cc,Test,Foundation
 REQ-M130-GCS-PROT-006,Protocol,Heartbeat loss >3s Warning,design/SystemArchitecture.md#safety,src/safety/Watchdog.cc,tests/core/WatchdogTest.cc,Test,Foundation
 REQ-M130-GCS-PROT-007,Protocol,Heartbeat loss >10s Emergency in BOOST/CRUISE,design/SystemArchitecture.md#safety,src/safety/Watchdog.cc,tests/core/WatchdogTest.cc,Test,Foundation
@@ -26,13 +26,13 @@ REQ-M130-GCS-CMD-002,Command,Command confirm dialog,design/SystemArchitecture.md
 REQ-M130-GCS-CMD-003,Command,Command ACK with timeout,design/SystemArchitecture.md#protocol,src/protocol/,tests/core/,Test,Pending
 REQ-M130-GCS-CMD-004,Command,Range/rate/time validation,design/SystemArchitecture.md#safety,src/safety/CommandAuthorization.cc,tests/core/CommandAuthorizationTest.cc,Test,Foundation
 REQ-M130-GCS-CMD-005,Command,Command audit logging,design/SystemArchitecture.md#logging,src/logging/AuditLogger.cc,tests/core/AuditLoggerTest.cc,Test,Foundation
-REQ-M130-GCS-LOG-001,Logging,Log in/out messages,design/SystemArchitecture.md#logging,src/logging/FlightDataRecorder.cc,tests/core/FlightDataRecorderTest.cc,Test,Pending
-REQ-M130-GCS-LOG-002,Logging,Multi-format FDR,design/SystemArchitecture.md#logging,src/logging/FlightDataRecorder.cc,tests/core/FlightDataRecorderTest.cc,Test,Pending
-REQ-M130-GCS-LOG-003,Logging,FDR HMAC signing,design/SystemArchitecture.md#logging,src/logging/ChainOfCustody.cc,tests/core/ChainOfCustodyTest.cc,Test,Foundation
+REQ-M130-GCS-LOG-001,Logging,Log in/out messages,design/FlightDataRecorder.md,src/logging/FlightDataRecorder.cc,tests/core/FlightDataRecorderTest.cc,Test,Integrated
+REQ-M130-GCS-LOG-002,Logging,Multi-format FDR,design/FlightDataRecorder.md,src/logging/FlightDataRecorder.cc,tests/core/FdrExporterTest.cc,Test,Integrated
+REQ-M130-GCS-LOG-003,Logging,FDR HMAC signing,design/FlightDataRecorder.md,src/logging/ChainOfCustody.cc,tests/core/HmacSha256Test.cc,Test,Integrated
 REQ-M130-GCS-LOG-004,Logging,Append-only audit,design/SystemArchitecture.md#logging,src/logging/AuditLogger.cc,tests/core/AuditLoggerTest.cc,Test,Foundation
-REQ-M130-GCS-LOG-005,Logging,Post-flight PDF,design/SystemArchitecture.md#logging,tools/post-flight-report.py,tests/integration/,Demonstration,Pending
+REQ-M130-GCS-LOG-005,Logging,Post-flight PDF,design/FlightDataRecorder.md,tools/post-flight-report.py,tests/integration/,Demonstration,Integrated
 REQ-M130-GCS-LOG-006,Logging,UI screenshots,design/SystemArchitecture.md#logging,src/logging/,tests/integration/,Demonstration,Pending
-REQ-M130-GCS-LOG-007,Logging,Replay 0.1x-100x,design/SystemArchitecture.md#logging,src/logging/,tests/integration/,Demonstration,Pending
+REQ-M130-GCS-LOG-007,Logging,Replay 0.1x-100x,design/FlightDataRecorder.md,src/logging/ReplayEngine.cc,tests/core/ReplayEngineTest.cc,Test,Integrated
 REQ-M130-GCS-UI-001,UI,Multiple consoles,design/SystemArchitecture.md#ui,src/views/,tests/qml/,Demonstration,Pending
 REQ-M130-GCS-UI-002,UI,DO-178C/MIL color scheme,design/SystemArchitecture.md#ui,src/ui/theme/,tests/qml/,Inspection,Existing
 REQ-M130-GCS-UI-003,UI,Colorblind modes,design/SystemArchitecture.md#ui,src/ui/theme/,tests/qml/,Demonstration,Foundation

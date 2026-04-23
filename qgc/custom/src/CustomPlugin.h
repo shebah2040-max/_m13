@@ -6,11 +6,16 @@
 #include "QGCCorePlugin.h"
 #include "QGCOptions.h"
 
+#include <memory>
+
 class CustomPlugin;
 class QQmlApplicationEngine;
 
 namespace m130::gui {
 class SafetyKernel;
+}
+namespace m130::logging {
+class FlightDataRecorder;
 }
 
 Q_DECLARE_LOGGING_CATEGORY(CustomLog)
@@ -68,6 +73,9 @@ public:
     /// Safety Kernel accessor (test seam + CustomFirmwarePlugin integration).
     m130::gui::SafetyKernel *safetyKernel() const noexcept { return _safetyKernel; }
 
+    /// Flight Data Recorder accessor. May be null if recording is not enabled.
+    m130::logging::FlightDataRecorder *flightDataRecorder() const noexcept { return _fdr.get(); }
+
     // Overrides
     void cleanup() final;
     QGCOptions *options() final { return _options; }
@@ -83,12 +91,15 @@ private slots:
 
 private:
     void _dispatchM130Message(Vehicle *vehicle, const mavlink_message_t &message);
+    void _initFlightDataRecorder();
+    void _recordRawFrame(const mavlink_message_t &message, std::uint8_t channel);
 
 private:
     CustomOptions *_options = nullptr;
     QQmlApplicationEngine *_qmlEngine = nullptr;
     class CustomOverrideInterceptor *_selector = nullptr;
     m130::gui::SafetyKernel *_safetyKernel = nullptr;
+    std::unique_ptr<m130::logging::FlightDataRecorder> _fdr;
 };
 
 // ============================================================================

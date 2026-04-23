@@ -23,6 +23,9 @@ int signAndVerify()
     auto path = writeTempFile("hello world");
     auto m = c.signFile(path);
     M130_REQUIRE(m.has_value());
+    M130_REQUIRE_EQ(m->mac_alg, std::string("HMAC-SHA256"));
+    M130_REQUIRE_EQ(m->mac.size(), std::size_t(64));              // hex SHA-256
+    M130_REQUIRE_EQ(m->content_sha256.size(), std::size_t(64));
     M130_REQUIRE(c.verifyFile(*m));
     // Tamper.
     std::ofstream o(path, std::ios::trunc | std::ios::binary);
