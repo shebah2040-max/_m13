@@ -158,6 +158,28 @@ set(CUSTOM_SOURCES
     # Phase B — Qt-bound facade for Pillar 7 tuning
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningController.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning/TuningController.h
+    # Pillar 8 — geodetic, trajectory, corridor, weather cores (pure C++)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Wgs84.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Wgs84.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Geodesic.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo/Geodesic.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapCorridor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapCorridor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/CorridorMonitor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/CorridorMonitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherOverlay.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherOverlay.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/NotamModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/NotamModel.h
+    # Pillar 8 — Qt-bound controllers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/TrajectoryController.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav/MapController.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherController.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather/WeatherController.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -180,6 +202,9 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/analysis
     ${CMAKE_CURRENT_SOURCE_DIR}/src/tuning
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/geo
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nav
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/weather
     CACHE INTERNAL "" FORCE
 )
 
