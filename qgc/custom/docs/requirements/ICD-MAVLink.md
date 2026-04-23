@@ -145,11 +145,32 @@ uint8_t  reason_code            // see FtsReasonCode enum
 | Rev | Protocol Version | Changes |
 |---|---|---|
 | A | 1.0.0 | الإصدار الأول — مشتق من DEBUG_FLOAT_ARRAY array_id=2 |
+| A.1 | 1.0.0 | Pillar 2 — توليد C++ عبر `tools/generate-dialect.py`، `M130GncStateFactGroup` حي بجانب `RocketTelemetryFactGroup` |
 
 ## 6. خريطة الانتقال من DEBUG_FLOAT_ARRAY
 
 خريطة حرفية في `ICD-DebugFloatArray-legacy.md`. المسار:
-1. **المرحلة الأولى** (هذا الـ PR): تعريف m130.xml وتوثيقه فقط
-2. **المرحلة الثانية**: توليد كود C++/Python من m130.xml، تشغيل dual-emit في firmware (القديم + الجديد)
-3. **المرحلة الثالثة**: GCS يستقبل من الجديد، القديم للتحقق
-4. **المرحلة الرابعة**: إزالة DEBUG_FLOAT_ARRAY من firmware وGCS
+
+1. **المرحلة الأولى** (Foundation): تعريف `m130.xml` وتوثيقه فقط.
+2. **المرحلة الثانية** (هذا الـ PR — Pillar 2):
+   - مولّد C++ في `tools/generate-dialect.py` يخرج `src/protocol/generated/*.generated.{h,cc}`.
+   - CI يتحقق من طزاجة المخرجات عبر `--check`.
+   - `M130GncStateFactGroup` جديد يتغذى من `M130_GNC_STATE` (42001) إذا بثّه الـ firmware.
+   - `CustomPlugin::_dispatchM130Message` يعالج `M130_HEARTBEAT_EXTENDED` + `M130_GNC_STATE`، والباقي no-op مسجّل هنا.
+   - `DEBUG_FLOAT_ARRAY` يبقى يعمل بجانب الرسائل الجديدة (dual-receive من جانب GCS).
+3. **المرحلة الثالثة**: تحديث `rocket_mpc` في PX4 ليبثّ الرسائل الرسمية بدل `DEBUG_FLOAT_ARRAY`.
+4. **المرحلة الرابعة**: إزالة `RocketTelemetryFactGroup` + DEBUG_FLOAT_ARRAY handlers.
+
+### 6.1 حالة المُعالِج في GCS لكل رسالة
+
+| msgid | Name | Handler | الحالة |
+|---|---|---|---|
+| 42000 | M130_HEARTBEAT_EXTENDED | `_dispatchM130Message` | ✓ implemented (watchdog feed + version check) |
+| 42001 | M130_GNC_STATE | `_dispatchM130Message` → `M130GncStateFactGroup` | ✓ implemented |
+| 42002 | M130_MHE_DIAGNOSTICS | — | ⌛ pending (Pillar 2.1 / 7) |
+| 42003 | M130_MPC_DIAGNOSTICS | — | ⌛ pending (Pillar 2.1 / 7) |
+| 42004 | M130_FIN_STATE | — | ⌛ pending |
+| 42005 | M130_EVENT_COUNTERS | — | ⌛ pending |
+| 42006 | M130_SENSOR_HEALTH | — | ⌛ pending |
+| 42007 | M130_COMMAND_ACK_M130 | — | ⌛ pending |
+| 42100–42107 | commands | — | outbound only, no receive handler needed |

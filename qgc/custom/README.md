@@ -80,7 +80,7 @@ CI. Subsequent PRs flesh out each of the ten pillars:
 | Pillar | Scope |
 |---|---|
 | 1. Requirements & Docs | tighten SRS, add full SCMP baselines, auto-PDF pipeline |
-| 2. Protocol Maturity | MAVLink codegen from m130.xml, FactGroup split, dialect cutover |
+| 2. Protocol Maturity | MAVLink codegen from m130.xml, FactGroup split, dialect cutover (✓ delivered; see `docs/design/ProtocolCodegen.md`) |
 | 3. Safety Kernel Integration | wire Safety Kernel into `CustomPlugin` (✓ delivered; see `docs/design/SafetyKernel-Integration.md`) |
 | 4. Flight Data Recorder | Parquet/Arrow, screenshots, video, replay engine |
 | 5. Views Completion | Operations/PreLaunch/RangeSafety consoles |

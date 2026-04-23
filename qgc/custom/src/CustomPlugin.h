@@ -82,6 +82,9 @@ private slots:
     void _advancedChanged(bool advanced);
 
 private:
+    void _dispatchM130Message(Vehicle *vehicle, const mavlink_message_t &message);
+
+private:
     CustomOptions *_options = nullptr;
     QQmlApplicationEngine *_qmlEngine = nullptr;
     class CustomOverrideInterceptor *_selector = nullptr;
