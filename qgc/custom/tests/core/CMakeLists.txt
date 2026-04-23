@@ -33,8 +33,13 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/logging/Hmac.cc
     ${M130_CUSTOM_DIR}/src/logging/ReplayEngine.cc
     ${M130_CUSTOM_DIR}/src/logging/Sha256.cc
-    ${M130_CUSTOM_DIR}/src/access/UserManager.cc
+    ${M130_CUSTOM_DIR}/src/access/Authenticator.cc
+    ${M130_CUSTOM_DIR}/src/access/Base32.cc
+    ${M130_CUSTOM_DIR}/src/access/PasswordHasher.cc
+    ${M130_CUSTOM_DIR}/src/access/Pbkdf2.cc
     ${M130_CUSTOM_DIR}/src/access/SessionManager.cc
+    ${M130_CUSTOM_DIR}/src/access/Totp.cc
+    ${M130_CUSTOM_DIR}/src/access/UserManager.cc
     ${M130_CUSTOM_DIR}/src/protocol/ProtocolVersion.cc
     ${M130_CUSTOM_DIR}/src/protocol/MessageRouter.cc
     ${M130_CUSTOM_DIR}/src/protocol/M130Dialect.cc
@@ -88,3 +93,7 @@ m130_add_test(ChecklistModelTest)
 m130_add_test(CountdownClockTest)
 m130_add_test(IipPredictorTest)
 m130_add_test(ReplayControllerTest)
+m130_add_test(AuthenticatorChainTest)
+m130_add_test(Base32Test)
+m130_add_test(Pbkdf2Test)
+m130_add_test(TotpTest)
