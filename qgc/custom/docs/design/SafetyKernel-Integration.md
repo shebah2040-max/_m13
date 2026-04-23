@@ -1,3 +1,9 @@
+---
+noteId: "3b0406703f2711f1be0e05e75d28fafd"
+tags: []
+
+---
+
 # Safety Kernel Integration (Pillar 3)
 
 Supersedes the Foundation-era note in
