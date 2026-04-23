@@ -13,6 +13,11 @@
 #include "protocol/generated/M130Messages.generated.h"
 #include "telemetry/M130GncStateFactGroup.h"
 #include "logging/FlightDataRecorder.h"
+#include "access/AccessController.h"
+#include "views/MissionController.h"
+#include "tuning/TuningController.h"
+#include "analysis/AnalysisController.h"
+#include "safety/FlightPhase.h"
 
 #include <chrono>
 #include <cstdlib>
@@ -59,10 +64,31 @@ CustomPlugin::CustomPlugin(QObject *parent)
     : QGCCorePlugin(parent)
     , _options(new CustomOptions(this, this))
     , _safetyKernel(new m130::gui::SafetyKernel(this))
+    , _access(new m130::gui::AccessController(this))
+    , _mission(new m130::gui::MissionController(this))
+    , _tuning(new m130::gui::TuningController(this))
+    , _analysis(new m130::gui::AnalysisController(this))
 {
     qCDebug(CustomLog) << "M130 GCS Plugin initializing";
     _showAdvancedUI = false;
     _safetyKernel->installDefaults();
+    _access->installDefaultUsers();
+    _mission->installDefaultChecklist();
+    _tuning->installDefaults();
+    _analysis->installDefaultSeries();
+
+    // Safety Kernel → Tuning: route mission-phase changes so the tuning gate
+    // can reject weight changes in BOOST/CRUISE without a step-up.
+    (void) connect(_safetyKernel, &m130::gui::SafetyKernel::phaseChanged,
+                   this, [this]{ _tuning->setCurrentPhase(_safetyKernel->currentPhaseInt()); });
+
+    // Access → Tuning: step-up freshness signals whether the operator has
+    // re-authenticated recently enough for critical parameter edits.
+    (void) connect(_access, &m130::gui::AccessController::sessionChanged,
+                   this, [this]{
+                       _tuning->setStepUpFresh(!_access->stepUpRequired());
+                   });
+
     _initFlightDataRecorder();
     (void) connect(this, &QGCCorePlugin::showAdvancedUIChanged, this, &CustomPlugin::_advancedChanged);
 }
@@ -250,6 +276,24 @@ void CustomPlugin::_dispatchM130Message(Vehicle *vehicle, const mavlink_message_
             _safetyKernel->evaluateSample(QStringLiteral("phi"), gnc.phi);
             _safetyKernel->evaluateSample(QStringLiteral("alpha_est"), gnc.alpha_est);
         }
+        // Phase B — feed Pillar 7 live analysis and Pillar 5 IIP.
+        if (_analysis) {
+            const auto tMs = static_cast<qint64>(gnc.time_usec / 1000);
+            _analysis->push(QStringLiteral("phi"),          tMs, gnc.phi);
+            _analysis->push(QStringLiteral("theta"),        tMs, gnc.theta);
+            _analysis->push(QStringLiteral("psi"),          tMs, gnc.psi);
+            _analysis->push(QStringLiteral("q_dyn"),        tMs, gnc.q_dyn);
+            _analysis->push(QStringLiteral("altitude"),     tMs, gnc.altitude);
+            _analysis->push(QStringLiteral("airspeed"),     tMs, gnc.airspeed);
+            _analysis->push(QStringLiteral("alpha_est"),    tMs, gnc.alpha_est);
+        }
+        if (_mission) {
+            // GNC frame: downrange + crossrange are horizontal; altitude is
+            // AGL (up-positive). Velocity components are not carried on this
+            // message yet — pass zero so IIP degrades to a drop prediction.
+            _mission->updateIip(gnc.pos_downrange, gnc.pos_crossrange, gnc.altitude,
+                                0.0, 0.0, 0.0);
+        }
         // Pillar 4 — structured track: persist a small subset of decoded
         // GNC fields so post-flight analysis does not require reparsing the
         // raw payload. Full schema lives in docs/design/FlightDataRecorder.md.
@@ -424,10 +468,12 @@ QQmlApplicationEngine *CustomPlugin::createQmlApplicationEngine(QObject *parent)
 
     // Publish the Safety Kernel to QML so MasterCautionLight, AlertBanner,
     // and console views can bind to its properties (REQ-M130-GCS-UI-001/002).
-    if (_safetyKernel) {
-        _qmlEngine->rootContext()->setContextProperty(
-            QStringLiteral("m130SafetyKernel"), _safetyKernel);
-    }
+    auto *ctx = _qmlEngine->rootContext();
+    if (_safetyKernel) ctx->setContextProperty(QStringLiteral("m130SafetyKernel"), _safetyKernel);
+    if (_access)       ctx->setContextProperty(QStringLiteral("m130Access"),       _access);
+    if (_mission)      ctx->setContextProperty(QStringLiteral("m130Mission"),      _mission);
+    if (_tuning)       ctx->setContextProperty(QStringLiteral("m130Tuning"),       _tuning);
+    if (_analysis)     ctx->setContextProperty(QStringLiteral("m130Analysis"),     _analysis);
 
     return _qmlEngine;
 }

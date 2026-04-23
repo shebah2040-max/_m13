@@ -34,5 +34,7 @@
         <file alias="widgets/AdiIndicator.qml">src/ui/widgets/AdiIndicator.qml</file>
         <file alias="widgets/AltitudeTape.qml">src/ui/widgets/AltitudeTape.qml</file>
         <file alias="widgets/AirspeedTape.qml">src/ui/widgets/AirspeedTape.qml</file>
+        <file alias="views/login/LoginScreen.qml">src/views/login/LoginScreen.qml</file>
+        <file alias="views/login/StepUpDialog.qml">src/views/login/StepUpDialog.qml</file>
     </qresource>
 </RCC>
