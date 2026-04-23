@@ -24,6 +24,7 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/safety/CommandAuthorization.cc
     ${M130_CUSTOM_DIR}/src/safety/FlightSafetyEnvelope.cc
     ${M130_CUSTOM_DIR}/src/safety/FlightTerminationService.cc
+    ${M130_CUSTOM_DIR}/src/safety/SafetyAggregator.cc
     ${M130_CUSTOM_DIR}/src/logging/AuditLogger.cc
     ${M130_CUSTOM_DIR}/src/logging/ChainOfCustody.cc
     ${M130_CUSTOM_DIR}/src/logging/FlightDataRecorder.cc
@@ -65,3 +66,4 @@ m130_add_test(SessionManagerTest)
 m130_add_test(ProtocolVersionTest)
 m130_add_test(MessageRouterTest)
 m130_add_test(M130DialectTest)
+m130_add_test(SafetyAggregatorTest)

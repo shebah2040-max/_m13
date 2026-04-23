@@ -29,6 +29,29 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin/CustomFirmwarePlugin.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin/CustomFirmwarePluginFactory.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin/CustomFirmwarePluginFactory.h
+    # Safety Kernel (pure-C++ cores + Qt facade)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/MissionStateMachine.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/MissionStateMachine.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/Watchdog.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/Watchdog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/AlertManager.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/AlertManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/CommandAuthorization.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/CommandAuthorization.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/FlightSafetyEnvelope.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/FlightSafetyEnvelope.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/FlightTerminationService.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/FlightTerminationService.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyAggregator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyAggregator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/AlertLevel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/FlightPhase.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/AlertListModel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/AlertListModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety/SafetyKernel.h
+    # Access layer (used by CommandAuthorization)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Role.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -43,6 +66,7 @@ set(CUSTOM_LIBRARIES
 set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/safety
     CACHE INTERNAL "" FORCE
 )
 
@@ -55,5 +79,6 @@ set(CUSTOM_DEFINITIONS
 
 set(CUSTOM_QT_COMPONENTS
     Core
+    Qml
     CACHE INTERNAL "" FORCE
 )

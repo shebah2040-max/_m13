@@ -9,6 +9,10 @@
 class CustomPlugin;
 class QQmlApplicationEngine;
 
+namespace m130::gui {
+class SafetyKernel;
+}
+
 Q_DECLARE_LOGGING_CATEGORY(CustomLog)
 
 // ============================================================================
@@ -57,8 +61,12 @@ class CustomPlugin : public QGCCorePlugin
 
 public:
     explicit CustomPlugin(QObject *parent = nullptr);
+    ~CustomPlugin() override;
 
     static QGCCorePlugin *instance();
+
+    /// Safety Kernel accessor (test seam + CustomFirmwarePlugin integration).
+    m130::gui::SafetyKernel *safetyKernel() const noexcept { return _safetyKernel; }
 
     // Overrides
     void cleanup() final;
@@ -77,6 +85,7 @@ private:
     CustomOptions *_options = nullptr;
     QQmlApplicationEngine *_qmlEngine = nullptr;
     class CustomOverrideInterceptor *_selector = nullptr;
+    m130::gui::SafetyKernel *_safetyKernel = nullptr;
 };
 
 // ============================================================================

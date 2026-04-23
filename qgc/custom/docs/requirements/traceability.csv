@@ -14,7 +14,7 @@ REQ-M130-GCS-TELE-005,Telemetry,Redundant cross-check,design/SystemArchitecture.
 REQ-M130-GCS-SAFE-001,Safety,Mission state machine,design/SystemArchitecture.md#safety,src/safety/MissionStateMachine.cc,tests/core/MissionStateMachineTest.cc,Test,Foundation
 REQ-M130-GCS-SAFE-002,Safety,Guarded state transitions,design/SystemArchitecture.md#safety,src/safety/MissionStateMachine.cc,tests/core/MissionStateMachineTest.cc,Test,Foundation
 REQ-M130-GCS-SAFE-003,Safety,Independent watchdogs,design/SystemArchitecture.md#safety,src/safety/Watchdog.cc,tests/core/WatchdogTest.cc,Test,Foundation
-REQ-M130-GCS-SAFE-004,Safety,Master caution/warning/emergency,design/SystemArchitecture.md#ui,src/ui/MasterCautionLight.qml,tests/qml/tst_MasterCaution.qml,Test,Pending
+REQ-M130-GCS-SAFE-004,Safety,Master caution/warning/emergency,design/SystemArchitecture.md#ui,src/safety/SafetyKernel.cc,tests/core/SafetyAggregatorTest.cc,Test,Integrated
 REQ-M130-GCS-SAFE-005,Safety,ARINC 661 alert levels,design/SystemArchitecture.md#safety,src/safety/AlertManager.cc,tests/core/AlertManagerTest.cc,Test,Foundation
 REQ-M130-GCS-SAFE-006,Safety,Alert acknowledgment audit,design/SystemArchitecture.md#safety,src/safety/AlertManager.cc,tests/core/AlertManagerTest.cc,Test,Foundation
 REQ-M130-GCS-SAFE-007,Safety,IIP computation,design/SystemArchitecture.md#safety,src/safety/,tests/core/,Analysis,Pending
@@ -40,7 +40,7 @@ REQ-M130-GCS-UI-004,UI,ScreenTools sizing,design/SystemArchitecture.md#ui,src/vi
 REQ-M130-GCS-UI-005,UI,QGCPalette colors,design/SystemArchitecture.md#ui,src/ui/theme/,tests/qml/,Inspection,Existing
 REQ-M130-GCS-UI-006,UI,RTL + responsive,design/SystemArchitecture.md#ui,src/views/,tests/qml/,Demonstration,Pending
 REQ-M130-GCS-UI-007,UI,Saved layouts multi-monitor,design/SystemArchitecture.md#ui,src/views/,tests/qml/,Demonstration,Pending
-REQ-M130-GCS-UI-008,UI,Master caution in all consoles,design/SystemArchitecture.md#ui,src/ui/MasterCautionLight.qml,tests/qml/,Inspection,Pending
+REQ-M130-GCS-UI-008,UI,Master caution in all consoles,design/SystemArchitecture.md#ui,src/ui/MasterCautionLight.qml,tests/core/SafetyAggregatorTest.cc,Inspection,Integrated
 REQ-M130-GCS-SEC-001,Security,argon2id local auth,design/SystemArchitecture.md#security,src/access/UserManager.cc,tests/core/UserManagerTest.cc,Test,Pending
 REQ-M130-GCS-SEC-002,Security,LDAP/AD optional,design/SystemArchitecture.md#security,src/access/UserManager.cc,tests/integration/,Test,Pending
 REQ-M130-GCS-SEC-003,Security,TOTP for FTS,design/SystemArchitecture.md#security,src/access/UserManager.cc,tests/core/,Test,Pending

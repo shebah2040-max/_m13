@@ -2,9 +2,10 @@
 //
 // Master Caution / Warning / Emergency lamp (REQ-M130-GCS-SAFE-004, UI-008).
 //
-// Bound to `masterAlertLevel` (0..4) which is driven by the C++ AlertManager
-// exposed as a context property "m130AlertManager". Until the property is
-// wired (Pillar 3), the binding defaults to None.
+// Bound to `m130SafetyKernel.masterLevel` (0..4) driven by the C++ Safety
+// Kernel QObject facade (registered as a QML context property in
+// CustomPlugin::createQmlApplicationEngine). Falls back to None when the
+// context property is absent (e.g. in the QML editor preview).
 
 import QtQuick          2.15
 import QtQuick.Controls 2.15
@@ -20,8 +21,10 @@ Item {
     readonly property int levelWarning   : 3
     readonly property int levelEmergency : 4
 
-    property int level: (typeof m130AlertManager !== "undefined" && m130AlertManager !== null)
-                          ? m130AlertManager.masterLevel : levelNone
+    property int level: (typeof m130SafetyKernel !== "undefined" && m130SafetyKernel !== null)
+                          ? m130SafetyKernel.masterLevel : levelNone
+    readonly property int activeCount: (typeof m130SafetyKernel !== "undefined" && m130SafetyKernel !== null)
+                          ? m130SafetyKernel.activeAlertCount : 0
     property string text: qsTr("OK")
 
     readonly property QGCPalette qgcPal: QGCPalette { colorGroupEnabled: true }
