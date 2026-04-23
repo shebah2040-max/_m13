@@ -1,3 +1,9 @@
+---
+noteId: "2e8723d03f2e11f1be0e05e75d28fafd"
+tags: []
+
+---
+
 # Dialect Code Generation (Pillar 2)
 
 - **Document ID** : DESIGN-M130-PROTO-CODEGEN-001

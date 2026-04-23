@@ -1,3 +1,9 @@
+---
+noteId: "2e8723d13f2e11f1be0e05e75d28fafd"
+tags: []
+
+---
+
 # Flight Data Recorder (FDR) — Pillar 4
 
 **Status:** Delivered (core library + live capture + exporters + signed chain of custody + post-flight report).  
