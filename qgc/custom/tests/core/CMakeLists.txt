@@ -27,7 +27,12 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/safety/SafetyAggregator.cc
     ${M130_CUSTOM_DIR}/src/logging/AuditLogger.cc
     ${M130_CUSTOM_DIR}/src/logging/ChainOfCustody.cc
+    ${M130_CUSTOM_DIR}/src/logging/FdrExporter.cc
+    ${M130_CUSTOM_DIR}/src/logging/FdrReader.cc
     ${M130_CUSTOM_DIR}/src/logging/FlightDataRecorder.cc
+    ${M130_CUSTOM_DIR}/src/logging/Hmac.cc
+    ${M130_CUSTOM_DIR}/src/logging/ReplayEngine.cc
+    ${M130_CUSTOM_DIR}/src/logging/Sha256.cc
     ${M130_CUSTOM_DIR}/src/access/UserManager.cc
     ${M130_CUSTOM_DIR}/src/access/SessionManager.cc
     ${M130_CUSTOM_DIR}/src/protocol/ProtocolVersion.cc
@@ -70,3 +75,8 @@ m130_add_test(MessageRouterTest)
 m130_add_test(M130DialectTest)
 m130_add_test(SafetyAggregatorTest)
 m130_add_test(M130GeneratedCodecTest)
+m130_add_test(Sha256Test)
+m130_add_test(HmacSha256Test)
+m130_add_test(FdrReaderTest)
+m130_add_test(ReplayEngineTest)
+m130_add_test(FdrExporterTest)

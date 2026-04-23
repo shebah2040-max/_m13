@@ -67,6 +67,23 @@ set(CUSTOM_SOURCES
     # Telemetry FactGroups driven by the generated dialect
     ${CMAKE_CURRENT_SOURCE_DIR}/src/telemetry/M130GncStateFactGroup.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/telemetry/M130GncStateFactGroup.h
+    # Flight Data Recorder (Pillar 4)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/Sha256.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/Sha256.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/Hmac.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/Hmac.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/ChainOfCustody.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/ChainOfCustody.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/FlightDataRecorder.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/FlightDataRecorder.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/FdrReader.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/FdrReader.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/FdrExporter.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/FdrExporter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/ReplayEngine.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/ReplayEngine.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/AuditLogger.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging/AuditLogger.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -84,6 +101,7 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/safety
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol
     ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/generated
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/logging
     CACHE INTERNAL "" FORCE
 )
 

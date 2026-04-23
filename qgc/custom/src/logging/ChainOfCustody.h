@@ -11,15 +11,17 @@ namespace m130::logging {
 /// Signed envelope around an arbitrary file (e.g. FDR segment).
 /// The envelope stores: path, size, created_at, mac, mac_alg, key_id.
 ///
-/// REQ-M130-GCS-LOG-003 + REQ-M130-GCS-SEC-008 (key rotation). Real HMAC is a
-/// follow-up; this class provides the manifest API.
+/// REQ-M130-GCS-LOG-003 + REQ-M130-GCS-SEC-008 (key rotation).
+/// Pillar 4: MAC algorithm is HMAC-SHA256 (FIPS 180-4 + RFC 2104),
+/// implemented in-tree with stdlib-only C++. File hashes use SHA-256.
 struct Manifest {
     std::string path;
     std::uint64_t size_bytes = 0;
     std::uint64_t created_at_ms = 0;
-    std::string mac;          ///< hex
-    std::string mac_alg;      ///< "FNV1A64" (Foundation) / "HMAC-SHA256" (future)
+    std::string mac;          ///< hex (HMAC-SHA256 by default, 64 chars)
+    std::string mac_alg;      ///< "HMAC-SHA256"
     std::string key_id;       ///< rotating identifier
+    std::string content_sha256; ///< hex SHA-256 of the signed content (64 chars)
     std::string prev_manifest_hash;
     std::string this_manifest_hash;
 };

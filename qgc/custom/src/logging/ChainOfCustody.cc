@@ -1,33 +1,16 @@
 #include "ChainOfCustody.h"
 
+#include "Hmac.h"
+#include "Sha256.h"
+
 #include <chrono>
 #include <filesystem>
 #include <fstream>
-#include <iomanip>
 #include <sstream>
 
 namespace m130::logging {
 
 namespace {
-uint64_t fnv1a64(std::string_view data, std::string_view key = {})
-{
-    uint64_t h = 0xcbf29ce484222325ULL;
-    for (unsigned char c : data) {
-        h ^= c; h *= 0x100000001b3ULL;
-    }
-    for (unsigned char c : key) {
-        h ^= c; h *= 0x100000001b3ULL;
-    }
-    return h;
-}
-
-std::string toHex64(uint64_t x)
-{
-    std::ostringstream os;
-    os << std::hex << std::setw(16) << std::setfill('0') << x;
-    return os.str();
-}
-
 uint64_t now_ms()
 {
     using namespace std::chrono;
@@ -65,7 +48,7 @@ const ChainOfCustody::KeyEntry* ChainOfCustody::activeKey() const
 
 std::string ChainOfCustody::computeMac(std::string_view content, const KeyEntry& key) const
 {
-    return toHex64(fnv1a64(content, key.hex));
+    return crypto::HmacSha256::macHex(key.hex, content);
 }
 
 std::string ChainOfCustody::computeManifestHash(const Manifest& m) const
@@ -73,8 +56,8 @@ std::string ChainOfCustody::computeManifestHash(const Manifest& m) const
     std::ostringstream os;
     os << m.path << '|' << m.size_bytes << '|' << m.created_at_ms << '|'
        << m.mac << '|' << m.mac_alg << '|' << m.key_id << '|'
-       << m.prev_manifest_hash;
-    return toHex64(fnv1a64(os.str()));
+       << m.content_sha256 << '|' << m.prev_manifest_hash;
+    return crypto::Sha256::toHex(crypto::Sha256::hash(os.str()));
 }
 
 std::optional<Manifest> ChainOfCustody::signFile(const std::string& path)
@@ -94,8 +77,9 @@ std::optional<Manifest> ChainOfCustody::signFile(const std::string& path)
     m.size_bytes = content.size();
     m.created_at_ms = now_ms();
     m.mac = computeMac(content, *key);
-    m.mac_alg = "FNV1A64"; // upgrade to HMAC-SHA256 in follow-up PR
+    m.mac_alg = "HMAC-SHA256";
     m.key_id = key->id;
+    m.content_sha256 = crypto::Sha256::toHex(crypto::Sha256::hash(content));
     m.prev_manifest_hash = _last_hash;
     m.this_manifest_hash = computeManifestHash(m);
     return m;
@@ -109,7 +93,13 @@ bool ChainOfCustody::verifyFile(const Manifest& m) const
         if (!in.is_open()) return false;
         std::ostringstream buf;
         buf << in.rdbuf();
-        return computeMac(buf.str(), k) == m.mac;
+        const std::string content = buf.str();
+        if (computeMac(content, k) != m.mac) return false;
+        if (!m.content_sha256.empty()) {
+            const auto digest = crypto::Sha256::toHex(crypto::Sha256::hash(content));
+            if (digest != m.content_sha256) return false;
+        }
+        return true;
     }
     return false;
 }
