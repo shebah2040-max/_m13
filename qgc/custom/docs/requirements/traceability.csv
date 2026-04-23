@@ -41,8 +41,8 @@ REQ-M130-GCS-UI-005,UI,QGCPalette colors,design/SystemArchitecture.md#ui,src/ui/
 REQ-M130-GCS-UI-006,UI,RTL + responsive,design/SystemArchitecture.md#ui,src/views/,tests/qml/,Demonstration,Pending
 REQ-M130-GCS-UI-007,UI,Saved layouts multi-monitor,design/SystemArchitecture.md#ui,src/views/,tests/qml/,Demonstration,Pending
 REQ-M130-GCS-UI-008,UI,Master caution in all consoles,design/SystemArchitecture.md#ui,src/ui/MasterCautionLight.qml,tests/core/SafetyAggregatorTest.cc,Inspection,Integrated
-REQ-M130-GCS-SEC-001,Security,Strong local password auth (PBKDF2-SHA256; argon2id-ready hasher interface),design/AccessControl.md,src/access/PasswordHasher.cc,tests/core/Pbkdf2Test.cc,Test,Integrated
-REQ-M130-GCS-SEC-002,Security,LDAP/AD optional,design/SystemArchitecture.md#security,src/access/UserManager.cc,tests/integration/,Test,Pending
+REQ-M130-GCS-SEC-001,Security,Strong local password auth (Argon2id RFC 9106 + PBKDF2-SHA256 fallback),design/Phase6b-AuthEnhancements.md,src/access/PasswordHasher.cc,tests/core/Argon2Test.cc,Test,Integrated
+REQ-M130-GCS-SEC-002,Security,LDAP/AD optional (RFC 4514 DN parser + RFC 4515 filter evaluator + pluggable transport),design/Phase6b-AuthEnhancements.md,src/access/LdapAuthenticator.cc,tests/core/LdapAuthenticatorTest.cc,Test,Integrated
 REQ-M130-GCS-SEC-003,Security,TOTP for FTS (RFC 6238 SHA-256),design/AccessControl.md,src/access/Totp.cc,tests/core/TotpTest.cc,Test,Integrated
 REQ-M130-GCS-SEC-004,Security,Session idle + absolute timeout,design/AccessControl.md,src/access/SessionManager.cc,tests/core/SessionManagerTest.cc,Test,Integrated
 REQ-M130-GCS-SEC-005,Security,Step-up reauth for critical ops (TOTP + session-id rotation),design/AccessControl.md,src/access/SessionManager.cc,tests/core/SessionManagerTest.cc,Test,Integrated
@@ -50,6 +50,7 @@ REQ-M130-GCS-SEC-006,Security,TLS 1.3 relay,design/SystemArchitecture.md#securit
 REQ-M130-GCS-SEC-007,Security,MAVLink 2 signing,design/SystemArchitecture.md#security,src/protocol/,tests/integration/,Test,Pending
 REQ-M130-GCS-SEC-008,Security,Key rotation,design/SystemArchitecture.md#security,src/access/,tests/core/,Analysis,Pending
 REQ-M130-GCS-SEC-009,Security,Keychain/HSM storage,design/SystemArchitecture.md#security,src/access/,tests/integration/,Analysis,Pending
+REQ-M130-GCS-SEC-010,Security,mTLS cert policy (pinning / SAN / validity window / EKU / issuer trust / role mapping),design/Phase6b-AuthEnhancements.md,src/access/CertPolicy.cc,tests/core/CertPolicyTest.cc,Test,Integrated
 REQ-M130-GCS-ACC-001,Access,RBAC enforcement,design/SystemArchitecture.md#access,src/safety/CommandAuthorization.cc,tests/core/CommandAuthorizationTest.cc,Test,Foundation
 REQ-M130-GCS-ACC-002,Access,Permission change audit,design/SystemArchitecture.md#access,src/logging/AuditLogger.cc,tests/core/AuditLoggerTest.cc,Test,Foundation
 REQ-M130-GCS-ACC-003,Access,Self-escalation forbidden,design/SystemArchitecture.md#access,src/access/UserManager.cc,tests/core/UserManagerTest.cc,Test,Pending

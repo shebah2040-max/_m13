@@ -83,6 +83,11 @@ public:
 
     void setLockoutPolicy(LockoutPolicy p) noexcept { _lockout = p; }
     void setPasswordPolicy(PasswordPolicy p) noexcept { _policy = p; }
+    /// Swap the password hasher. Existing stored hashes remain readable by
+    /// the previous hasher's `verify()`; new passwords set after this call
+    /// use the new scheme.
+    void setHasher(std::shared_ptr<IPasswordHasher> hasher) noexcept { _hasher = std::move(hasher); }
+    const IPasswordHasher& hasher() const noexcept { return *_hasher; }
     const LockoutPolicy&  lockoutPolicy()  const noexcept { return _lockout; }
     const PasswordPolicy& passwordPolicy() const noexcept { return _policy; }
 

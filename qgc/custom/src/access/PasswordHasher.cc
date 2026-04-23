@@ -1,5 +1,6 @@
 #include "PasswordHasher.h"
 
+#include "Argon2.h"
 #include "Pbkdf2.h"
 
 #include <cstdint>
@@ -121,9 +122,92 @@ bool Pbkdf2Hasher::verify(std::string_view password, std::string_view encoded) c
     return constantTimeEqual(got, want);
 }
 
+// ------ Argon2idHasher ------
+
+std::string Argon2idHasher::hash(std::string_view password,
+                                 std::string_view salt) const
+{
+    crypto::Argon2Params p;
+    p.memory_kib  = _memory_kib;
+    p.iterations  = _iterations;
+    p.parallelism = _parallelism;
+    p.tag_length  = 32;
+
+    const auto tag = crypto::argon2idHash(password, salt, p);
+    std::ostringstream os;
+    os << "argon2id$v=" << crypto::Argon2Params::kVersion
+       << "$m=" << _memory_kib << ",t=" << _iterations << ",p=" << _parallelism
+       << '$' << b64encode(reinterpret_cast<const std::uint8_t*>(salt.data()), salt.size())
+       << '$' << b64encode(tag.data(), tag.size());
+    return os.str();
+}
+
+bool Argon2idHasher::verify(std::string_view password,
+                            std::string_view encoded) const
+{
+    // Expected: argon2id$v=19$m=<m>,t=<t>,p=<p>$<salt_b64>$<hash_b64>
+    const auto f1 = encoded.find('$');              if (f1 == std::string_view::npos) return false;
+    const auto f2 = encoded.find('$', f1 + 1);      if (f2 == std::string_view::npos) return false;
+    const auto f3 = encoded.find('$', f2 + 1);      if (f3 == std::string_view::npos) return false;
+    const auto f4 = encoded.find('$', f3 + 1);      if (f4 == std::string_view::npos) return false;
+
+    if (encoded.substr(0, f1) != "argon2id") return false;
+    const auto v = encoded.substr(f1 + 1, f2 - f1 - 1);
+    if (v.substr(0, 2) != "v=") return false;
+    // We only support v=19.
+    if (v.substr(2) != "19") return false;
+
+    const auto params = encoded.substr(f2 + 1, f3 - f2 - 1);
+    std::uint32_t m = 0, t = 0, par = 0;
+    // Tokens look like: m=<n>,t=<n>,p=<n>
+    auto readNum = [](std::string_view s, const char* key, std::uint32_t& out) {
+        const auto p = s.find(key);
+        if (p == std::string_view::npos) return false;
+        std::size_t i = p + std::char_traits<char>::length(key);
+        std::uint32_t val = 0;
+        bool any = false;
+        while (i < s.size() && s[i] >= '0' && s[i] <= '9') {
+            val = val * 10 + static_cast<std::uint32_t>(s[i] - '0');
+            ++i;
+            any = true;
+        }
+        if (!any) return false;
+        out = val;
+        return true;
+    };
+    if (!readNum(params, "m=", m))   return false;
+    if (!readNum(params, "t=", t))   return false;
+    if (!readNum(params, "p=", par)) return false;
+
+    const auto salt_b = encoded.substr(f3 + 1, f4 - f3 - 1);
+    const auto hash_b = encoded.substr(f4 + 1);
+    const auto salt = b64decode(salt_b);
+    const auto want = b64decode(hash_b);
+    if (want.empty()) return false;
+
+    crypto::Argon2Params p;
+    p.memory_kib  = m;
+    p.iterations  = t;
+    p.parallelism = par;
+    p.tag_length  = static_cast<std::uint32_t>(want.size());
+
+    const auto got = crypto::argon2idHash(
+        password,
+        std::string_view(reinterpret_cast<const char*>(salt.data()), salt.size()),
+        p);
+    return constantTimeEqual(got, want);
+}
+
+// ------ Factories ------
+
 std::shared_ptr<IPasswordHasher> defaultHasher()
 {
     return std::make_shared<Pbkdf2Hasher>();
+}
+
+std::shared_ptr<IPasswordHasher> argon2idHasher()
+{
+    return std::make_shared<Argon2idHasher>();
 }
 
 } // namespace m130::access

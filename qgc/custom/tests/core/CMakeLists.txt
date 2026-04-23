@@ -37,6 +37,13 @@ add_library(m130_core STATIC
     ${M130_CUSTOM_DIR}/src/access/Base32.cc
     ${M130_CUSTOM_DIR}/src/access/PasswordHasher.cc
     ${M130_CUSTOM_DIR}/src/access/Pbkdf2.cc
+    ${M130_CUSTOM_DIR}/src/access/Blake2b.cc
+    ${M130_CUSTOM_DIR}/src/access/Argon2.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapDn.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapFilter.cc
+    ${M130_CUSTOM_DIR}/src/access/LdapAuthenticator.cc
+    ${M130_CUSTOM_DIR}/src/access/CertPolicy.cc
+    ${M130_CUSTOM_DIR}/src/access/MtlsAuthenticator.cc
     ${M130_CUSTOM_DIR}/src/access/SessionManager.cc
     ${M130_CUSTOM_DIR}/src/access/Totp.cc
     ${M130_CUSTOM_DIR}/src/access/UserManager.cc
@@ -109,3 +116,9 @@ m130_add_test(FftTest)
 m130_add_test(SpectrumTest)
 m130_add_test(MheInnovationMonitorTest)
 m130_add_test(MpcTuningModelTest)
+m130_add_test(Blake2bTest)
+m130_add_test(Argon2Test)
+m130_add_test(LdapDnTest)
+m130_add_test(LdapFilterTest)
+m130_add_test(LdapAuthenticatorTest)
+m130_add_test(CertPolicyTest)

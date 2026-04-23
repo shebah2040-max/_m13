@@ -56,8 +56,22 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/AccessController.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Authenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Argon2.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Argon2.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Base32.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Base32.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Blake2b.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Blake2b.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/CertPolicy.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/CertPolicy.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapAuthenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapAuthenticator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapDn.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapDn.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapFilter.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/LdapFilter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/MtlsAuthenticator.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/access/MtlsAuthenticator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/PasswordHasher.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/access/Pbkdf2.cc
