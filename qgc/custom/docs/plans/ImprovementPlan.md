@@ -39,8 +39,8 @@
 | R1.1 | 🔴 | إصلاح format-string UB في `tests/core/test_support.h` | ✅ | #TBD (PR #1) | §3.6 |
 | R1.2 | 🔴 | إضافة `ImprovementPlan.md` + knowledge note | ✅ | #TBD (PR #1) | (جديد) |
 | R1.3 | 🔴 | ربط `ConsoleSwitcher.qml` كواجهة أساسية (بعد LoginScreen) | ⏳ | — | §3.1 |
-| R1.4 | 🔴 | إصدار Alert.Emergency عند `VersionCompat::MajorMismatch` | ⏳ | — | §3.7 |
-| R1.5 | 🔴 | تفعيل `-Werror` في CI (بدون تأثير local) | 🚧 | #TBD (PR #2) | §3.16 |
+| R1.4 | 🔴 | إصدار Alert.Emergency عند `VersionCompat::MajorMismatch` | 🚧 | #TBD (PR #3) | §3.7 |
+| R1.5 | 🔴 | تفعيل `-Werror` في CI (بدون تأثير local) | ✅ | #15 (PR #2) | §3.16 |
 | **R2 — إكمال الـ"delivered"** |
 | R2.1 | 🟠 | حذف `RocketTelemetryFactGroup` + تهجير QML → `m130Gnc` | ⏳ | — | §3.4 |
 | R2.2 | 🟠 | إضافة velocities إلى `M130GncState` (bump dialect) لتصحيح IIP | ⏳ | — | §3.8 |
@@ -67,8 +67,9 @@
 
 | PR | العنوان | البنود | تاريخ الدمج | CI |
 |----|---------|--------|-------------|-----|
-| #1 | `[M130-PR1] Add Improvement Plan + fix test_support.h format UB` | R1.1, R1.2 | 2026-04-23 | 5 passed |
-| #2 | `[M130-PR2] Enable -Werror -Wall -Wextra in CI configure step` | R1.5 | — | — |
+| #1 (#14) | `[M130-PR1] Add Improvement Plan + fix test_support.h format UB` | R1.1, R1.2 | 2026-04-23 | 5 passed |
+| #2 (#15) | `[M130-PR2] Enable -Werror -Wall -Wextra in CI configure step` | R1.5 | 2026-04-23 | 3 passed |
+| #3 (TBD) | `[M130-PR3] Raise Emergency alert on protocol MajorMismatch (R1.4)` | R1.4 | — | — |
 
 *(يُحدَّث يدوياً بعد دمج كل PR. استخدم `git log --oneline -- qgc/custom/docs/plans/ImprovementPlan.md` لرؤية تاريخ تحديثات الوثيقة نفسها.)*
 
@@ -94,7 +95,7 @@
 ملفات qgc/custom الكلية: 281
 أسطر C++/headers:       8,682
 ملفات QML:              20
-اختبارات core:           51 / 51 تمرّ
+اختبارات core:           51 / 51 تمرّ (ProtocolVersionTest: +3 sub-cases)
 مطالب Pending:           12 / 69
 ألوان hardcoded في QML:  66
 نصوص مترجَمة عربي / إنكليزي: 10 / 8
