@@ -253,12 +253,22 @@ void CustomPlugin::_dispatchM130Message(Vehicle *vehicle, const mavlink_message_
         const auto compat = m130::protocol::checkCompat(peer);
         if (_safetyKernel) {
             _safetyKernel->feed(QStringLiteral("heartbeat"));
-            if (compat.compat == m130::protocol::VersionCompat::MajorMismatch) {
-                // Reject telemetry from an incompatible major — operator must
-                // be notified so they can update one side.
-                // A full Alert raise is emitted later by the version watcher;
-                // for now we short-circuit to keep the UI stable.
-                (void) compat;
+            const auto level = m130::protocol::alertLevelFor(compat.compat);
+            if (level != m130::safety::AlertLevel::None) {
+                // Surface the compat delta on the master caution bus. Emergency
+                // on MajorMismatch tells the operator that telemetry from this
+                // peer cannot be trusted (REQ-M130-GCS-SAFE-005, §3.7 of the
+                // deep-analysis report).
+                _safetyKernel->aggregator().alerts().raise(
+                    std::string(m130::protocol::kCompatAlertId),
+                    level,
+                    "Protocol version mismatch",
+                    compat.message);
+            } else {
+                // Peer moved back onto a compatible version — clear any stale
+                // advisory so the master-caution bus returns to green.
+                _safetyKernel->aggregator().alerts().clear(
+                    std::string(m130::protocol::kCompatAlertId));
             }
         }
         break;

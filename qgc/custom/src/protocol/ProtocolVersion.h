@@ -1,7 +1,10 @@
 #pragma once
 
+#include "../safety/AlertLevel.h"
+
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 namespace m130::protocol {
 
@@ -51,5 +54,27 @@ struct CompatReport {
 
 /// Check @p peer against `kSupported`.
 CompatReport checkCompat(ProtocolVersion peer);
+
+/// Stable AlertManager id used when publishing a protocol-compat alert.
+/// Kept constant so repeated reports on the same compat class escalate
+/// in place rather than spamming the active queue.
+constexpr std::string_view kCompatAlertId = "protocol.version";
+
+/// Map a @p c compat class to the operator-visible ARINC 661 severity.
+///
+/// - MajorMismatch → Emergency (peer firmware rejected, telemetry unsafe)
+/// - MinorTooOld  → Caution   (peer missing fields we expect)
+/// - PatchDelta   → Advisory  (informational)
+/// - Compatible   → None
+constexpr safety::AlertLevel alertLevelFor(VersionCompat c) noexcept
+{
+    switch (c) {
+    case VersionCompat::MajorMismatch: return safety::AlertLevel::Emergency;
+    case VersionCompat::MinorTooOld:   return safety::AlertLevel::Caution;
+    case VersionCompat::PatchDelta:    return safety::AlertLevel::Advisory;
+    case VersionCompat::Compatible:    return safety::AlertLevel::None;
+    }
+    return safety::AlertLevel::None;
+}
 
 } // namespace m130::protocol
