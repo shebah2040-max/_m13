@@ -14,6 +14,13 @@
         <file alias="QGroundControl/FlyView/FlyViewCustomLayer.qml">src/FlyViewCustomLayer.qml</file>
     </qresource>
 
+    <!-- Legacy HUD content extracted from FlyViewCustomLayer.qml (R1.3) so it
+         can still be reached from the Operations console while the top-level
+         view is a login/switcher gate. -->
+    <qresource prefix="/qml/views/hud">
+        <file alias="LegacyHud.qml">src/views/hud/LegacyHud.qml</file>
+    </qresource>
+
     <!-- موارد الهوية البصرية -->
     <qresource prefix="/Custom/res">
         <file alias="QGCLogoFull.svg">res/Images/rocket_icon.svg</file>

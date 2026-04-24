@@ -3,8 +3,10 @@
 // Operations Console — primary flight display.
 // Pillar 5 (Views Completion) replaces the body of this file with the full
 // Attitude Director Indicator / Horizontal Situation Indicator / tape layout.
-// Foundation keeps the existing FlyViewCustomLayer content accessible via
-// Loader so the HUD continues to work while the split is staged.
+// Foundation keeps the existing legacy HUD reachable via Loader so the full
+// HUD continues to work while the split is staged. The legacy content lives
+// in qrc:/qml/views/hud/LegacyHud.qml since R1.3 turned FlyViewCustomLayer
+// into the login/console-switcher gate.
 
 import QtQuick          2.15
 import QtQuick.Controls 2.15
@@ -26,7 +28,7 @@ Item {
     Loader {
         id:        legacyHudLoader
         anchors.fill: parent
-        source:    "qrc:/qml/FlyViewCustomLayer.qml"
+        source:    "qrc:/qml/views/hud/LegacyHud.qml"
         active:    true
         asynchronous: false
     }
